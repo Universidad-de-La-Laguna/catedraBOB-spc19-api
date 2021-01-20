@@ -6,10 +6,10 @@ var Admins = require('../service/AdminsService');
 module.exports.addInsurancePolicy = function addInsurancePolicy (req, res, next, body) {
   Admins.addInsurancePolicy(body)
     .then(function (response) {
-      utils.writeJson(res, response);
+      utils.writeJson(res, response, 201);
     })
     .catch(function (response) {
-      utils.writeJson(res, response);
+      utils.writeJson(res, response, 500);
     });
 };
 

@@ -8,6 +8,8 @@ var app = require('../app')
 const listenPort = 8080
 const bearerToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJyb2xlIjoiQWRtaW5zIn0.PCuhWkAojdalNIDdSjAMtZ9dO1oJT_KfVF1nr__K9CA"
 
+jest.mock('../service/AdminsService')
+
 describe('insurance', function() {
     let server
     let request
