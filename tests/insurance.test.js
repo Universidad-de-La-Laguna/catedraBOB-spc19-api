@@ -10,14 +10,21 @@ const bearerToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3OD
 
 jest.mock('../service/AdminsService')
 
+const mongoose = require('mongoose')
+const dbHandler = require('./db-handler')
+
 describe('insurance', function() {
     let server
     let request
 
-    beforeAll(done => {
+    beforeAll(async done => {
+        // start http server
         server = http.createServer(app)
         server.listen(listenPort, done)
         request = supertest(server)
+
+        // start db
+        await dbHandler.connect()
     })
 
     describe('POST', function(){
@@ -30,7 +37,7 @@ describe('insurance', function() {
                 startDate: "2016-08-29T09:12:33.001Z",
                 finishDate: "2016-08-29T09:12:33.001Z",
                 assuredPrice: 4.51
-                }
+            }
 
             request.post('/insurers/insurance')
             .send(data)
@@ -67,8 +74,11 @@ describe('insurance', function() {
 
     })
 
-    afterAll(done => {
+    afterAll(async done => {
         // Close http server
         server.close(done)
+
+        // Close database
+        await dbHandler.closeDatabase()
     })
  })

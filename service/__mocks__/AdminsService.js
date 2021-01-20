@@ -1,5 +1,28 @@
 'use strict';
 
+/**
+ * IMPORTANTE
+ * 
+ * Este servicio está mockeado utilizando una base de datos MongoDB como repositorio de objetos en lugar de una blockchain.
+ * Cada objeto de la base de datos equivale a un contrato desplegado en la blockchain.
+ * 
+ */
+
+const insurerModel = require('../../tests/models/insurer')
+
+/**
+ * Stores a new product into the database.
+ * @param {Object} product product object to create.
+ * @throws {Error} If the product is not provided.
+ */
+module.exports.create = async (product) => {
+    if (!product)
+        throw new Error('Missing product');
+
+    //TODO: comprobar que no existe otro contrato con el mismo id. Sino, error y ver como controlar el status
+
+    await productModel.create(product);
+}
 
 /**
  * register new insurance policy
@@ -9,12 +32,15 @@
  * no response value expected for this operation
  **/
 exports.addInsurancePolicy = function(body) {
-  return new Promise(function(resolve, reject) {
-    console.log("Estoy aquiiiiiii")
-    resolve();
-  });
+  return new Promise(async function(resolve, reject) {
+    if (! body)
+      reject(new Error('Missing data'))
+    else {
+      await insurerModel.create(body)
+      resolve(body)
+    }
+  })
 }
-
 
 /**
  * new PCR test request to a customer
