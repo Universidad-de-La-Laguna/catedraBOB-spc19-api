@@ -1,0 +1,25 @@
+{
+  "name": "spc19-api",
+  "version": "1.0.0-oas3",
+  "description": "This is an API for SPC19 project",
+  "main": "app.js",
+  "scripts": {
+    "prestart": "npm install",
+    "start": "node app.js"
+  },
+  "keywords": [
+    "swagger"
+  ],
+  "license": "Unlicense",
+  "private": true,
+  "dependencies": {
+    "cors": "^2.8.5",
+    "connect": "3.2.0",
+    "js-yaml": "3.3.0",
+    "oas3-tools": "2.0.2"
+  },
+  "devDependencies": {
+    "mocha": "^8.2.1",
+    "supertest": "^6.1.1"
+  }
+}
