@@ -29,12 +29,12 @@ var options_object = {
     strict: true, // stop in error validations
     router: true,
     validator: true,
-    // docs: {
-    //   apiDocs: '/api-docs',
-    //   apiDocsPrefix: '',
-    //   swaggerUi: '/docs',
-    //   swaggerUiPrefix: ''
-    // },
+    docs: {
+      apiDocs: '/api-docs',
+      apiDocsPrefix: '',
+      swaggerUi: '/docs',
+      swaggerUiPrefix: ''
+    },
     oasSecurity: true,
     securityFile: {
         Bearer: {
