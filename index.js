@@ -1,7 +1,11 @@
 'use strict'
 
-var app = require('./app')
+const app = require('./app')
+const appPromise = require('./app').appPromise
 
 const port = parseInt(process.env.PORT, 10) || 8080
 
-app.listen(port, () => console.log(`Live at ${port}`))
+appPromise
+.then( () => {
+    app.listen(port, () => console.log(`Live at ${port}`))
+})

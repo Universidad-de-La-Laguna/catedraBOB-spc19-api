@@ -2,16 +2,19 @@
 
 var utils = require('../utils/writer.js');
 var Admins = require('../service/AdminsService');
+const config = require('../config')
 
-module.exports.addInsurancePolicy = function addInsurancePolicy (req, res, next, body) {
-  Admins.addInsurancePolicy(body)
+module.exports.addInsurancePolicy = function addInsurancePolicy (req, res, next) {
+  Admins.addInsurancePolicy(req.body)
     .then(function (response) {
       utils.writeJson(res, response, 201);
     })
     .catch(function (response) {
-      utils.writeJson(res, response, 500);
-    });
-};
+      let statusCode = (response instanceof Error) ? config.errorStatusCodes[response.message] : 500
+
+      utils.writeJson(res, response, statusCode)
+    })
+}
 
 module.exports.addPcrRequest = function addPcrRequest (req, res, next, body, customerId) {
   Admins.addPcrRequest(body, customerId)

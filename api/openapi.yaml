@@ -12,11 +12,14 @@ info:
 # - url: https://virtserver.swaggerhub.com/ESIT-ULL/spc19-api/1.0.0
 # - url: http://virtserver.swaggerhub.com/ESIT-ULL/spc19-api/1.0.0
 security:
-- bearerAuth: []
+- Bearer: []
 paths:
   /insurers/insurance:
     post:
       operationId: addInsurancePolicy
+      x-security-scopes:
+        - Admin
+        - Insurer
       summary: register new insurance policy
       description: Add a new insurance policy to the system
       requestBody:
@@ -246,7 +249,7 @@ components:
     NotFoundError:
       description: Item not found
   securitySchemes:
-    bearerAuth:
+    Bearer:
       type: http
       scheme: bearer
       bearerFormat: JWT

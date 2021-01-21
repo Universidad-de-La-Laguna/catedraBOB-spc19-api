@@ -12,8 +12,8 @@ exports.addInsurancePolicy = function(body) {
   return new Promise(function(resolve, reject) {
     //TODO: desplegar en la blockchain un nuevo contrato de seguro
 
-    reject();
-  });
+    reject()
+  })
 }
 
 

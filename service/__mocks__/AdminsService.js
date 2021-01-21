@@ -11,20 +11,6 @@
 const insurerModel = require('../../tests/models/insurer')
 
 /**
- * Stores a new product into the database.
- * @param {Object} product product object to create.
- * @throws {Error} If the product is not provided.
- */
-module.exports.create = async (product) => {
-    if (!product)
-        throw new Error('Missing product');
-
-    //TODO: comprobar que no existe otro contrato con el mismo id. Sino, error y ver como controlar el status
-
-    await productModel.create(product);
-}
-
-/**
  * register new insurance policy
  * Add a new insurance policy to the system
  *
@@ -33,7 +19,7 @@ module.exports.create = async (product) => {
  **/
 exports.addInsurancePolicy = function(body) {
   return new Promise(async function(resolve, reject) {
-    if (! body)
+    if (! body || Object.keys(body).length === 0)
       reject(new Error('Missing data'))
     else {
       await insurerModel.create(body)

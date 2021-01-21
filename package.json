@@ -2,7 +2,7 @@
   "name": "spc19-api",
   "version": "1.0.0-oas3",
   "description": "This is an API for SPC19 project",
-  "main": "app.js",
+  "main": "index.js",
   "scripts": {
     "test": "npx jest --runInBand ./test",
     "prestart": "npm install",
@@ -14,10 +14,12 @@
   "license": "Unlicense",
   "private": true,
   "dependencies": {
-    "cors": "^2.8.5",
-    "connect": "3.2.0",
+    "body-parser": "1.19.0",
+    "cors": "2.8.5",
+    "express": "4.17.1",
     "js-yaml": "3.3.0",
-    "oas3-tools": "2.0.2"
+    "jsonwebtoken": "8.5.1",
+    "oas-tools": "2.1.8"
   },
   "devDependencies": {
     "jest": "^26.6.3",
