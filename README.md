@@ -25,3 +25,25 @@ Execute:
 ```
 npm run test
 ```
+
+### Control de acceso
+
+Las reglas de control de acceso se especifican en el propio documento de especificación de la API (`api/openapi.yaml`), en la sección `x-acl-config`. Para más información, ver la documentación del módulo [accesscontrol](https://www.npmjs.com/package/accesscontrol). 
+
+El rol se debe especificar en el campo `role` del payload del token JWT utilizado. Por ejemplo, el siguiente token incluye el rol `admin` y este rol puede realizar lo mismo que el resto de roles del sistema:
+
+```jwt
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJyb2xlIjoiYWRtaW4iLCJpc3MiOiJVTEwifQ.OiehqHgx47KQqybnFhi3lFqooeFU4b_hfub_f5XcH6A
+```
+
+el payload es:
+
+```json
+{
+  "sub": "1234567890",
+  "name": "John Doe",
+  "iat": 1516239022,
+  "role": "admin",
+  "iss": "ULL"
+}
+```

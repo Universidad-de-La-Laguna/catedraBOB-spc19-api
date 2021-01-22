@@ -6,7 +6,7 @@ const appPromise = require('../app').appPromise
 const dbHandler = require('./db-handler')
 
 const listenPort = 8080
-const bearerToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJyb2xlIjoiQWRtaW5zIiwiaXNzIjoiVUxMIn0.8OnHWKLoPiwEJNsT_ucbBQC7yg3h2wTKvwPhhZ5HXoM"
+const adminBearerToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJyb2xlIjoiYWRtaW4iLCJpc3MiOiJVTEwifQ.OiehqHgx47KQqybnFhi3lFqooeFU4b_hfub_f5XcH6A"
 
 
 // Usar versión mockeada del servicio. Si se quiere usar versión real, basta con comentar la línea correspondiente.
@@ -42,7 +42,7 @@ describe('insurance', function() {
             request.post('/insurers/insurance')
             .send(data)
             .set('Accept', 'application/json')
-            .set('Authorization', 'Bearer ' + bearerToken)
+            .set('Authorization', 'Bearer ' + adminBearerToken)
             .expect('Content-Type', /json/)
             .expect(201, done)
         })
@@ -59,7 +59,7 @@ describe('insurance', function() {
             request.post('/insurers/insurance')
             .send(data)
             .set('Accept', 'application/json')
-            .set('Authorization', 'Bearer ' + bearerToken)
+            .set('Authorization', 'Bearer ' + adminBearerToken)
             .expect('Content-Type', /json/)
             .expect(400, done);
         })
@@ -67,7 +67,7 @@ describe('insurance', function() {
         it('Should return 415 by no body content', function(done){
             request.post('/insurers/insurance')
             .set('Accept', 'application/json')
-            .set('Authorization', 'Bearer ' + bearerToken)
+            .set('Authorization', 'Bearer ' + adminBearerToken)
             .expect('Content-Type', /json/)
             .expect(415, done);
         })

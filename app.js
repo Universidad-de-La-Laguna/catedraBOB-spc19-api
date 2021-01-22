@@ -43,6 +43,7 @@ var options_object = {
             key: config.JWT.secretKey
         }
     },
+    oasAuth: true, // grants in openapi spec file
     ignoreUnknownFormats: true
 }
 

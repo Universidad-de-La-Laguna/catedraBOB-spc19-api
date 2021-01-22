@@ -17,9 +17,6 @@ paths:
   /insurers/insurance:
     post:
       operationId: addInsurancePolicy
-      x-security-scopes:
-        - Admin
-        - Insurer
       summary: register new insurance policy
       description: Add a new insurance policy to the system
       requestBody:
@@ -253,3 +250,27 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+# Authorization rules. View doc in nodejs accesscontrol module. Role must be specified in role jwt attribute
+      x-acl-config:
+        insurer:
+          "insurers/insurance":
+            "create:any": ["*"]
+        blockchain:
+          "insurers/payment":
+            "create:any": ["*"]
+        customer:
+          "customers/pcrRequests":
+            "read:any": ["*"]
+        hostelry:
+          "/customers/pcrRequests":
+            "create:any": ["*"]
+        laboratory:
+          "customers/pcrRequests":
+            "update:any": ["*"]
+        admin:
+          "$extend":
+            - "insurer"
+            - "blockchain"
+            - "customer"
+            - "hostelry"
+            - "laboratory"
