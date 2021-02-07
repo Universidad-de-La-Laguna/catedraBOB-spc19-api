@@ -14,7 +14,7 @@ info:
 security:
 - Bearer: []
 paths:
-  /insurers/insurance:
+  /insurances:
     post:
       operationId: addInsurancePolicy
       summary: register new insurance policy
@@ -30,79 +30,51 @@ paths:
           description: insurance created
         "400":
           description: Invalid input, object invalid
-        "401":
+        "403":
           description: Security token is missing or invalid
         "409":
           description: an existing insurance already exists
-      x-swagger-router-controller: Admins
-  /insurers/{insuranceId}/payment:
-    post:
-      summary: order payment for insurance policy
-      description: Order the payment to customer for accomplishment of blockchain
-        contract
-      operationId: orderPayment
-      parameters:
-      - name: insuranceId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          $ref: '#/components/schemas/InsuranceId'
-      requestBody:
-        description: Order payment detail
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/OrderPaymentItem'
-      responses:
-        "200":
-          description: payment processed
-        "400":
-          description: Invalid input, object invalid
-        "401":
-          description: Security token is missing or invalid
-        "404":
-          description: Item not found
-      x-swagger-router-controller: Admins
-  /customers/{customerId}/pcrRequests:
+      x-swagger-router-controller: insurancesController
     get:
-      summary: get all PCR Request of a customer
-      description: Get state of all PCR Request of a customer
-      operationId: getPcrRequests
-      parameters:
-      - name: customerId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          $ref: '#/components/schemas/CustomerId'
+      operationId: getAllInsurancePolicy
+      summary: get all insurance policies
+      description: Insurer get all policies and hostelry only owns
       responses:
         "200":
-          description: Array of all PCR Tests
+          description: array of insurance policies
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/PcrRequestItem'
+                  $ref: '#/components/schemas/InsuranceItem'
                 x-content-type: application/json
-        "404":
-          description: Item not found
-      x-swagger-router-controller: Admins
+
+        "403":
+          description: Security token is missing or invalid
+      x-swagger-router-controller: insurancesController
+  /insurances/{insuranceId}/pcrRequests:
+    parameters:
+    - name: insuranceId
+      in: path
+      required: true
+      style: simple
+      explode: false
+      schema:
+        $ref: '#/components/schemas/InsuranceId'
+    - name: customerId
+      description: id of customer to PCR test
+      in: query
+      required: true
+      style: form
+      explode: false
+      schema:
+        $ref: '#/components/schemas/CustomerId'
+      x-swagger-router-controller: insurancesController
     post:
       summary: new PCR test request to a customer
       description: Hotel create a new PCR Request to check-in os a customer
       operationId: addPcrRequest
-      parameters:
-      - name: customerId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          $ref: '#/components/schemas/CustomerId'
       requestBody:
         description: PCR Request to create
         content:
@@ -114,31 +86,48 @@ paths:
           description: PCR Request created
         "400":
           description: Invalid input, object invalid
-        "401":
+        "403":
           description: Security token is missing or invalid
         "409":
           description: An existing PCR Request already exists
-      x-swagger-router-controller: Admins
-  /customers/{customerId}/pcrRequests/{pcrRequestId}:
+      x-swagger-router-controller: insurancesController
+  /insurances/{insuranceId}/pcrRequests/{pcrRequestId}:
+    parameters:
+    - name: insuranceId
+      in: path
+      required: true
+      style: simple
+      explode: false
+      schema:
+        $ref: '#/components/schemas/InsuranceId'
+    - name: pcrRequestId
+      in: path
+      required: true
+      style: simple
+      explode: false
+      schema:
+        $ref: '#/components/schemas/PcrId'
+      x-swagger-router-controller: insurancesController
+    get:
+      summary: get a pcrRequest detail
+      description: PCR request detail to client date
+      operationId: getPcrRequest
+      responses:
+        "200":
+          description: PCR Request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PcrRequestItem'
+        "403":
+          description: Security token is missing or invalid
+        "404":
+          description: Item not found
+      x-swagger-router-controller: insurancesController
     patch:
       summary: set result of an PCR test
       description: Laboratory set the PCR Request Result
       operationId: setResultPcrRequest
-      parameters:
-      - name: customerId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          $ref: '#/components/schemas/CustomerId'
-      - name: pcrRequestId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          $ref: '#/components/schemas/PcrId'
       requestBody:
         content:
           application/json:
@@ -147,13 +136,43 @@ paths:
       responses:
         "200":
           description: PCR Request updated
-        "401":
+        "403":
           description: Security token is missing or invalid
         "404":
           description: Item not found
         "409":
           description: The PCR request have already been updated
-      x-swagger-router-controller: Admins
+      x-swagger-router-controller: insurancesController
+  /insurances/{insuranceId}/checkPayment:
+    parameters:
+    - name: insuranceId
+      in: path
+      required: true
+      style: simple
+      explode: false
+      schema:
+        $ref: '#/components/schemas/InsuranceId'
+    post:
+      summary: order payment for insurance policy
+      description: Order the payment to customer for accomplishment of blockchain
+        contract
+      operationId: orderPayment
+      requestBody:
+        description: Order payment detail
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderPaymentItem'
+      responses:
+        "200":
+          description: payment processed
+        "400":
+          description: Invalid input, object invalid
+        "403":
+          description: Security token is missing or invalid
+        "404":
+          description: Item not found
+      x-swagger-router-controller: insurancesController
 components:
   schemas:
     InsuranceId:
@@ -253,24 +272,31 @@ components:
 # Authorization rules. View doc in nodejs accesscontrol module. Role must be specified in role jwt attribute
       x-acl-config:
         insurer:
-          "insurers/insurance":
-            "create:any": ["*"]
-        blockchain:
-          "insurers/payment":
-            "create:any": ["*"]
-        customer:
-          "customers/pcrRequests":
-            "read:any": ["*"]
+          "insurances":
+            "create:any":
+              - "*"
+            "read:any":
+              - "*"
+          "insurances/checkPayment":
+            "create:any":
+              - "*"
         hostelry:
-          "/customers/pcrRequests":
-            "create:any": ["*"]
+          "insurances":
+            "create:any":
+              - "*"
+            "read:any":
+              - "*"
+          "/insurances/pcrRequests":
+            "create:any":
+              - "*"
         laboratory:
           "customers/pcrRequests":
-            "update:any": ["*"]
+            "read:any":
+              - "*"
+            "update:any":
+              - "*"
         admin:
           "$extend":
             - "insurer"
-            - "blockchain"
-            - "customer"
             - "hostelry"
             - "laboratory"
