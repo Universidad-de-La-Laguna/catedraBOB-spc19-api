@@ -47,3 +47,17 @@ el payload es:
   "iss": "ULL"
 }
 ```
+
+### Construcción del contenedor docker
+
+Para construir la imagen docker:
+
+```sh
+docker build -t spc19-api .
+```
+
+Ejecución del contenedor:
+
+```sh
+docker run -d --name spc19-api -p 8080:8080 spc19-api
+```
