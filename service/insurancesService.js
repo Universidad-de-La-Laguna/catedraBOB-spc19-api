@@ -1,14 +1,5 @@
 'use strict';
 
-/**
- * IMPORTANTE
- * 
- * Este servicio está mockeado utilizando una base de datos MongoDB como repositorio de objetos en lugar de una blockchain.
- * Cada objeto de la base de datos equivale a un contrato desplegado en la blockchain.
- * 
- */
-
-const insurerModel = require('../../tests/models/insurer')
 
 /**
  * register new insurance policy
@@ -18,15 +9,25 @@ const insurerModel = require('../../tests/models/insurer')
  * no response value expected for this operation
  **/
 exports.addInsurancePolicy = function(body) {
-  return new Promise(async function(resolve, reject) {
-    if (! body || Object.keys(body).length === 0)
-      reject(new Error('Missing data'))
-    else {
-      await insurerModel.create(body)
-      resolve(body)
-    }
+  return new Promise(function(resolve, reject) {
+    //TODO: desplegar en la blockchain un nuevo contrato de seguro
+
+    reject()
   })
 }
+
+/**
+ * get all insurance policies
+ * Insurer get all policies and hostelry only owns
+ * 
+ * return List
+ */
+exports.getAllInsurancePolicy = function() {
+  return new Promise(function(resolve, reject) {
+    resolve()
+  })
+}
+
 
 /**
  * new PCR test request to a customer
@@ -48,28 +49,24 @@ exports.addPcrRequest = function(body,customerId) {
  * Get state of all PCR Request of a customer
  *
  * customerId CustomerId 
- * returns List
+ * returns PcrRequestItem
  **/
-exports.getPcrRequests = function(customerId) {
+exports.getPcrRequest = function(insuranceId, pcrRequestId) {
   return new Promise(function(resolve, reject) {
     var examples = {};
-    examples['application/json'] = [ {
-  "result" : "POSITIVE",
-  "customerId" : "customer1",
-  "requestDate" : "2016-08-29T09:12:33.001Z",
-  "id" : "562b2dd8-5a4f-11eb-ae93-0242ac130002"
-}, {
-  "result" : "POSITIVE",
-  "customerId" : "customer1",
-  "requestDate" : "2016-08-29T09:12:33.001Z",
-  "id" : "562b2dd8-5a4f-11eb-ae93-0242ac130002"
-} ];
-    if (Object.keys(examples).length > 0) {
-      resolve(examples[Object.keys(examples)[0]]);
-    } else {
-      resolve();
+    examples['application/json'] = {
+      "result" : "POSITIVE",
+      "customerId" : "customer1",
+      "requestDate" : "2016-08-29T09:12:33.001Z",
+      "id" : "562b2dd8-5a4f-11eb-ae93-0242ac130002"
     }
-  });
+
+    if (Object.keys(examples).length > 0) {
+      resolve(examples[Object.keys(examples)[0]])
+    } else {
+      resolve()
+    }
+  })
 }
 
 

@@ -11,7 +11,7 @@ const adminBearerToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0N
 
 // Usar versión mockeada del servicio. Si se quiere usar versión real, basta con comentar la línea correspondiente.
 // Las versiones mockeadas usan una persistencia con MongoDB en lugar de blockchain
-jest.mock('../service/AdminsService')
+jest.mock('../service/insurancesService')
 
 describe('insurance', function() {
     let server
@@ -39,7 +39,7 @@ describe('insurance', function() {
                 assuredPrice: 4.51
             }
 
-            request.post('/insurers/insurance')
+            request.post('/insurances')
             .send(data)
             .set('Accept', 'application/json')
             .set('Authorization', 'Bearer ' + adminBearerToken)
@@ -56,7 +56,7 @@ describe('insurance', function() {
                 assuredPrice: 4.51
             }
 
-            request.post('/insurers/insurance')
+            request.post('/insurances')
             .send(data)
             .set('Accept', 'application/json')
             .set('Authorization', 'Bearer ' + adminBearerToken)
@@ -65,7 +65,7 @@ describe('insurance', function() {
         })
 
         it('Should return 415 by no body content', function(done){
-            request.post('/insurers/insurance')
+            request.post('/insurances')
             .set('Accept', 'application/json')
             .set('Authorization', 'Bearer ' + adminBearerToken)
             .expect('Content-Type', /json/)
