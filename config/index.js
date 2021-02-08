@@ -4,6 +4,7 @@ module.exports = {
         issuer: process.env.JWT_ISSUER || 'ULL'
     },
     errorStatusCodes: {
-        "Missing data": 415
+        "Missing data": 415,
+        "Conflict": 409
     }
 }

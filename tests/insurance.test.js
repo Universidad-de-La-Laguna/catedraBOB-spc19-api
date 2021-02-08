@@ -72,6 +72,24 @@ describe('insurance', function() {
             .expect(415, done);
         })
 
+        it('Should return 409 by insurance already exists', function(done){
+            const data = {
+                id: "d290f1ee-6c54-4b01-90e6-d701748f0851",
+                customerId: "customer1",
+                contractDate: "2016-08-29T09:12:33.001Z",
+                startDate: "2016-08-29T09:12:33.001Z",
+                finishDate: "2016-08-29T09:12:33.001Z",
+                assuredPrice: 4.51
+            }
+
+            request.post('/insurances')
+            .send(data)
+            .set('Accept', 'application/json')
+            .set('Authorization', 'Bearer ' + adminBearerToken)
+            .expect('Content-Type', /json/)
+            .expect(409, done)
+        })
+
     })
 
     afterAll(async done => {
