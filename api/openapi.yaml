@@ -200,20 +200,47 @@ components:
       - POSITIVE
       - NEGATIVE
       - UNKNOWN
+    ImageHash:
+      type: string
+      description: Hash of image file of negative PCR
+      example: a3b5543998381d38ee72e2793488d1714c3f8d90f4bda632a411cb32f793bf0a
+    CustomerItem:
+      required:
+      - customerId
+      - customerName
+      - customerTelephone
+      - customerEmail
+      type: object
+      properties:
+        customerId:
+          $ref: '#/components/schemas/CustomerId'
+        customerName:
+          type: string
+          example: My Name
+        customerTelephone:
+          type: string
+          example: 555123456
+        customerEmail:
+          type: string
+          example: myemail@example.com
     InsuranceItem:
       required:
       - assuredPrice
       - contractDate
-      - customerId
+      - customers
       - finishDate
       - id
       - startDate
+      - negativePcrDate
+      - negativePcrHash
       type: object
       properties:
         id:
           $ref: '#/components/schemas/InsuranceId'
-        customerId:
-          $ref: '#/components/schemas/CustomerId'
+        customers:
+          type: array
+          items:
+            $ref: '#/components/schemas/CustomerItem'
         contractDate:
           $ref: '#/components/schemas/DateFormat'
         startDate:
@@ -223,6 +250,10 @@ components:
         assuredPrice:
           type: number
           example: 4.51
+        negativePcrDate:
+          $ref: '#/components/schemas/DateFormat'
+        negativePcrHash:
+          $ref: '#/components/schemas/ImageHash'
     PcrRequestItem:
       required:
       - customerId
