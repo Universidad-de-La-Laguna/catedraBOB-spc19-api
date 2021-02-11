@@ -7,7 +7,7 @@ const dbHandler = require('./db-handler')
 
 const listenPort = 8080
 const adminBearerToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJyb2xlIjoiYWRtaW4iLCJpc3MiOiJVTEwifQ.OiehqHgx47KQqybnFhi3lFqooeFU4b_hfub_f5XcH6A"
-
+const NEGATIVEPCRHOURSDIFF = 80
 
 // Usar versión mockeada del servicio. Si se quiere usar versión real, basta con comentar la línea correspondiente.
 // Las versiones mockeadas usan una persistencia con MongoDB en lugar de blockchain
@@ -16,6 +16,8 @@ jest.mock('../service/insurancesService')
 describe('insurance', function() {
     let server
     let request
+
+    var now = new Date()
 
     let insuranceData = {
         id: "d290f1ee-6c54-4b01-90e6-d701748f0851",
@@ -27,11 +29,11 @@ describe('insurance', function() {
                 customerEmail: "myemail@example.com"
             }
         ],
-        contractDate: "2016-08-29T09:12:33.001Z",
-        startDate: "2016-08-29T09:12:33.001Z",
-        finishDate: "2016-08-29T09:12:33.001Z",
+        contractDate: now.toISOString(),
+        startDate: now.toISOString(),
+        finishDate: now.toISOString(),
         assuredPrice: 4.51,
-        negativePcrDate: "2016-08-29T09:12:33.001Z",
+        negativePcrDate: now.toISOString(),
         negativePcrHash: "a3b5543998381d38ee72e2793488d1714c3f8d90f4bda632a411cb32f793bf0a"
     }
 
@@ -57,7 +59,7 @@ describe('insurance', function() {
             .expect(201, done)
         })
 
-        it('Should return 400 error by mandatory data (startDate) is missing', function(done){
+        it('Should return 400 error by mandatory data (startDate) is missing', (done) => {
 
             let fakeInsuranceData = Object.assign({}, insuranceData)
             delete fakeInsuranceData.startDate
@@ -70,7 +72,7 @@ describe('insurance', function() {
             .expect(400, done);
         })
 
-        it('Should return 415 by no body content', function(done){
+        it('Should return 415 by no body content', (done) => {
 
             request.post('/insurances')
             .set('Accept', 'application/json')
@@ -79,7 +81,7 @@ describe('insurance', function() {
             .expect(415, done);
         })
 
-        it('Should return 409 by insurance already exists', function(done){
+        it('Should return 409 by insurance already exists', (done) => {
 
             request.post('/insurances')
             .send(insuranceData)
@@ -87,6 +89,23 @@ describe('insurance', function() {
             .set('Authorization', 'Bearer ' + adminBearerToken)
             .expect('Content-Type', /json/)
             .expect(409, done)
+        })
+
+        it('Should return 400 error by negative pcr date out of range', (done) => {
+
+            let fakeInsuranceData = Object.assign({}, insuranceData)
+
+            // Set negativePcrDate to now minus 80 hours (out of range)
+            var today = new Date()            
+            today.setHours(today.getHours() - NEGATIVEPCRHOURSDIFF)
+            fakeInsuranceData.negativePcrDate = today.toISOString()
+
+            request.post('/insurances')
+            .send(fakeInsuranceData)
+            .set('Accept', 'application/json')
+            .set('Authorization', 'Bearer ' + adminBearerToken)
+            .expect('Content-Type', /json/)
+            .expect(400, done)
         })
 
     })

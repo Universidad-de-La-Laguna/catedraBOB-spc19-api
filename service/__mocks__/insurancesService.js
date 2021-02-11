@@ -10,6 +10,10 @@
 
 const insurerModel = require('../../tests/models/insurer')
 
+const helpers = require('../../utils/helpers')
+
+const config = require('../../config')
+
 /**
  * register new insurance policy
  * Add a new insurance policy to the system
@@ -22,15 +26,20 @@ exports.addInsurancePolicy = function(body) {
     if (! body || Object.keys(body).length === 0)
       reject(new Error('Missing data'))
     else {
-      // check if insurance already exists
-      let insurance = await insurerModel.find({ id: body.id })
-      if (insurance.length > 0) {
-        reject(new Error('Conflict'))
-      }
+      // check negative pcr date
+      if (helpers.isodateHoursDiff(body.negativePcrDate, (new Date()).toISOString()) > config.businessParams.negativePcrHours )
+        reject(new Error('Invalid data'))
       else {
-        // Create insurance
-        await insurerModel.create(body)
-        resolve(body)  
+        // check if insurance already exists
+        let insurance = await insurerModel.find({ id: body.id })
+        if (insurance.length > 0) {
+          reject(new Error('Conflict'))
+        }
+        else {
+          // Create insurance
+          await insurerModel.create(body)
+          resolve(body)  
+        }
       }
     }
   })
