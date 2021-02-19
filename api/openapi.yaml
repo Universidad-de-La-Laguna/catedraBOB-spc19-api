@@ -38,7 +38,7 @@ paths:
     get:
       operationId: getAllInsurancePolicy
       summary: get all insurance policies
-      description: Insurer get all policies and hostelry only owns
+      description: Insurer get all policies and taker only owns
       responses:
         "200":
           description: array of insurance policies
@@ -175,11 +175,16 @@ paths:
       x-swagger-router-controller: insurancesController
 components:
   schemas:
+    TakerId:
+      type: string
+      description: Identifier for an insurance instance
+      format: uuid
+      example: "d290f1ee-6c54-4b01-90e6-d701748f0852"
     InsuranceId:
       type: string
       description: Identifier for an insurance instance
       format: uuid
-      example: d290f1ee-6c54-4b01-90e6-d701748f0851
+      example: "d290f1ee-6c54-4b01-90e6-d701748f0851"
     CustomerId:
       type: string
       example: customer1
@@ -187,11 +192,11 @@ components:
       type: string
       description: Identifier for an PCR instance
       format: uuid
-      example: 562b2dd8-5a4f-11eb-ae93-0242ac130002
+      example: "562b2dd8-5a4f-11eb-ae93-0242ac130002"
     DateFormat:
       type: string
       format: date-time
-      example: 2016-08-29T09:12:33.001Z
+      example: "2016-08-29T09:12:33.001Z"
     PcrResult:
       type: string
       description: |
@@ -204,39 +209,102 @@ components:
       type: string
       description: Hash of image file of negative PCR
       example: a3b5543998381d38ee72e2793488d1714c3f8d90f4bda632a411cb32f793bf0a
+    Taker:
+      required:
+      - takerId
+      - takerNif
+      - takerFullName
+      - takerContactAddress
+      - takerContactPostalCode
+      - takerContactTown
+      - takerContactLocation
+      - takerContactEmail
+      - takerIBAN
+      type: object
+      properties:
+        takerId:
+          $ref: '#/components/schemas/TakerId'
+        takerNif:
+          type: string
+          example: "12345678H"
+        takerFullName:
+          type: string
+          example: "My taker full name"
+        takerContactAddress:
+          type: string
+          example: "Example Street, 1"
+        takerContactPostalCode:
+          type: string
+          example: "38001"
+        takerContactTown:
+          type: string
+          example: "My town"
+        takerContactLocation:
+          type: string
+          example: "My location"
+        takerContactTelephone:
+          type: string
+          example: "555123456"
+        takerContactMobile:
+          type: string
+          example: "646123456"
+        takerContactEmail:
+          type: string
+          example: "taker@example.com"
+        takerIBAN:
+          type: string
+          example: "ES2712345678901234567890"
     CustomerItem:
       required:
       - customerId
-      - customerName
-      - customerTelephone
+      - customerNif
+      - customerFullName
+      - customerGender
       - customerEmail
-      type: object
-      properties:
-        customerId:
-          $ref: '#/components/schemas/CustomerId'
-        customerName:
-          type: string
-          example: My Name
-        customerTelephone:
-          type: string
-          example: 555123456
-        customerEmail:
-          type: string
-          example: myemail@example.com
-    InsuranceItem:
-      required:
-      - assuredPrice
-      - contractDate
-      - customers
-      - finishDate
-      - id
-      - startDate
+      - customerBirthDate
       - negativePcrDate
       - negativePcrHash
       type: object
       properties:
+        customerId:
+          $ref: '#/components/schemas/CustomerId'
+        customerNif:
+          type: string
+          example: "12345678H"
+        customerFullName:
+          type: string
+          example: My Full Name
+        customerGender:
+          type: string
+          enum:
+          - MALE
+          - FEMALE
+        customerBirthDate:
+          $ref: '#/components/schemas/DateFormat'
+        customerTelephone:
+          type: string
+          example: "555123456"
+        customerEmail:
+          type: string
+          example: "myemail@example.com"
+        negativePcrDate:
+          $ref: '#/components/schemas/DateFormat'
+        negativePcrHash:
+          $ref: '#/components/schemas/ImageHash'
+    InsuranceItem:
+      required:
+      - id
+      - taker
+      - assuredPrice
+      - startDate
+      - finishDate
+      - customers
+      type: object
+      properties:
         id:
           $ref: '#/components/schemas/InsuranceId'
+        taker:
+          $ref: '#/components/schemas/Taker'
         customers:
           type: array
           items:
@@ -249,11 +317,12 @@ components:
           $ref: '#/components/schemas/DateFormat'
         assuredPrice:
           type: number
-          example: 4.51
-        negativePcrDate:
-          $ref: '#/components/schemas/DateFormat'
-        negativePcrHash:
-          $ref: '#/components/schemas/ImageHash'
+          enum:
+          - 50
+          - 100
+          - 300
+          example: 50
+          description: Compensation for an economic loss (fixed range)
     PcrRequestItem:
       required:
       - customerId
@@ -274,9 +343,9 @@ components:
       example:
         result: POSITIVE
         customerId: customer1
-        requestDate: 2016-08-29T09:12:33.001Z
+        requestDate: "2016-08-29T09:12:33.001Z"
         resultDate: null
-        id: 562b2dd8-5a4f-11eb-ae93-0242ac130002
+        id: "562b2dd8-5a4f-11eb-ae93-0242ac130002"
     OrderPaymentItem:
       required:
       - insurance
@@ -287,7 +356,7 @@ components:
           $ref: '#/components/schemas/InsuranceItem'
         payment:
           type: number
-          example: 4.51
+          example: 1000
   responses:
     InvalidInputError:
       description: Invalid input, object invalid
@@ -311,7 +380,7 @@ components:
           "insurances/checkPayment":
             "create:any":
               - "*"
-        hostelry:
+        taker:
           "insurances":
             "create:any":
               - "*"
@@ -329,5 +398,5 @@ components:
         admin:
           "$extend":
             - "insurer"
-            - "hostelry"
+            - "taker"
             - "laboratory"

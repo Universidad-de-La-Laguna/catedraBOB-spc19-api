@@ -21,20 +21,35 @@ describe('insurance', function() {
 
     let insuranceData = {
         id: "d290f1ee-6c54-4b01-90e6-d701748f0851",
+        taker: {
+            takerId: "d290f1ee-6c54-4b01-90e6-d701748f0852",
+            takerNif: "12345678H",
+            takerFullName: "My taker full name",
+            takerContactAddress: "Example Street, 1",
+            takerContactPostalCode: "38001",
+            takerContactTown: "My town",
+            takerContactLocation: "My location",
+            takerContactTelephone: "555123456",
+            takerContactMobile: "646123456",
+            takerContactEmail: "taker@example.com",
+            takerIBAN: "ES2712345678901234567890"
+        },
         customers: [
             {
                 customerId: "customer1",
-                customerName: "My Name",
+                customerNif: "12345678H",
+                customerFullName: "My Full Name",
+                customerGender: "MALE",
+                customerBirthDate: "2016-08-29T09:12:33.001Z",
                 customerTelephone: "555123456",
-                customerEmail: "myemail@example.com"
+                customerEmail: "myemail@example.com",
+                negativePcrDate: "2016-08-29T09:12:33.001Z",
+                negativePcrHash: "a3b5543998381d38ee72e2793488d1714c3f8d90f4bda632a411cb32f793bf0a"
             }
         ],
-        contractDate: now.toISOString(),
         startDate: now.toISOString(),
         finishDate: now.toISOString(),
-        assuredPrice: 4.51,
-        negativePcrDate: now.toISOString(),
-        negativePcrHash: "a3b5543998381d38ee72e2793488d1714c3f8d90f4bda632a411cb32f793bf0a"
+        assuredPrice: 50
     }
 
     beforeAll(async () => {
