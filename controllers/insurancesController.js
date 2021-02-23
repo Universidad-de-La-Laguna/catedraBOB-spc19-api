@@ -56,6 +56,16 @@ module.exports.setResultPcrRequest = function setResultPcrRequest (req, res, nex
     })
 }
 
+module.exports.deletePcrRequest = function deletePcrRequest (req, res, next, body, customerId, pcrRequestId) {
+  insuranceService.deletePcrRequest(body, customerId, pcrRequestId)
+    .then(function (response) {
+      utils.writeJson(res, response)
+    })
+    .catch(function (response) {
+      utils.writeJson(res, response)
+    })
+}
+
 module.exports.orderPayment = function orderPayment (req, res, next, body, insuranceId) {
   insuranceService.orderPayment(body, insuranceId)
     .then(function (response) {

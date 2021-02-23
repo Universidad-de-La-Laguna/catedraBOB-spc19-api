@@ -143,6 +143,18 @@ paths:
         "409":
           description: The PCR request have already been updated
       x-swagger-router-controller: insurancesController
+    delete:
+      summary: Cancel a PCR Request
+      description: Cancel an existing PCR Request
+      operationId: deletePcrRequest
+      responses:
+        "200":
+          description: PCR Request deleted
+        "403":
+          description: Security token is missing or invalid
+        "404":
+          description: Item not found
+      x-swagger-router-controller: insurancesController
   /insurances/{insuranceId}/checkPayment:
     parameters:
     - name: insuranceId

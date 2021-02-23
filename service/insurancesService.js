@@ -39,8 +39,8 @@ exports.getAllInsurancePolicy = function() {
  **/
 exports.addPcrRequest = function(body,customerId) {
   return new Promise(function(resolve, reject) {
-    resolve();
-  });
+    resolve()
+  })
 }
 
 
@@ -69,22 +69,6 @@ exports.getPcrRequest = function(insuranceId, pcrRequestId) {
   })
 }
 
-
-/**
- * order payment for insurance policy
- * Order the payment to customer for accomplishment of blockchain contract
- *
- * body OrderPaymentItem Order payment detail (optional)
- * insuranceId InsuranceId 
- * no response value expected for this operation
- **/
-exports.orderPayment = function(body,insuranceId) {
-  return new Promise(function(resolve, reject) {
-    resolve();
-  });
-}
-
-
 /**
  * set result of an PCR test
  * Laboratory set the PCR Request Result
@@ -94,9 +78,37 @@ exports.orderPayment = function(body,insuranceId) {
  * pcrRequestId PcrId 
  * no response value expected for this operation
  **/
-exports.setResultPcrRequest = function(body,customerId,pcrRequestId) {
+exports.setResultPcrRequest = function(body, customerId, pcrRequestId) {
   return new Promise(function(resolve, reject) {
-    resolve();
-  });
+    resolve()
+  })
 }
 
+/**
+ * Cancel a PCR Request
+ * Cancel an existing PCR Request
+ * 
+ * body String  (optional)
+ * customerId CustomerId 
+ * pcrRequestId PcrId 
+ * no response value expected for this operation
+ */
+exports.deletePcrRequest = function(body, customerId, pcrRequestId) {
+  return new Promise(function(resolve, reject) {
+    resolve()
+  })
+}
+
+/**
+ * order payment for insurance policy
+ * Order the payment to customer for accomplishment of blockchain contract
+ *
+ * body OrderPaymentItem Order payment detail (optional)
+ * insuranceId InsuranceId 
+ * no response value expected for this operation
+ **/
+exports.orderPayment = function(body, insuranceId) {
+  return new Promise(function(resolve, reject) {
+    resolve()
+  })
+}
