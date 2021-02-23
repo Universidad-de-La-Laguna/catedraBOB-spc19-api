@@ -26,13 +26,15 @@ module.exports.getAllInsurancePolicy = function getAllInsurancePolicy (req, res,
     })
 }
 
-module.exports.addPcrRequest = function addPcrRequest (req, res, next, body, customerId) {
-  insuranceService.addPcrRequest(body, customerId)
+module.exports.addPcrRequest = function addPcrRequest (req, res, next, insuranceId) {
+  insuranceService.addPcrRequest(req.body, req.params.insuranceId)
     .then(function (response) {
-      utils.writeJson(res, response)
+      utils.writeJson(res, response, 201)
     })
     .catch(function (response) {
-      utils.writeJson(res, response)
+      let statusCode = (response instanceof Error) ? config.errorStatusCodes[response.message] : 500
+
+      utils.writeJson(res, response, statusCode)
     })
 }
 

@@ -62,15 +62,6 @@ paths:
       explode: false
       schema:
         $ref: '#/components/schemas/InsuranceId'
-    - name: customerId
-      description: id of customer to PCR test
-      in: query
-      required: true
-      style: form
-      explode: false
-      schema:
-        $ref: '#/components/schemas/CustomerId'
-      x-swagger-router-controller: insurancesController
     post:
       summary: new PCR test request to a customer
       description: Hotel create a new PCR Request to check-in os a customer
@@ -335,6 +326,10 @@ components:
           - 300
           example: 50
           description: Compensation for an economic loss (fixed range)
+        pcrRequests:
+          type: array
+          items:
+            $ref: '#/components/schemas/PcrRequestItem'
     PcrRequestItem:
       required:
       - customerId

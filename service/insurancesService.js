@@ -33,11 +33,11 @@ exports.getAllInsurancePolicy = function() {
  * new PCR test request to a customer
  * Hotel create a new PCR Request to check-in os a customer
  *
- * body PcrRequestItem PCR Request to create (optional)
- * customerId CustomerId 
+ * body PcrRequestItem PCR Request to create
+ * insuranceId insuranceId
  * no response value expected for this operation
  **/
-exports.addPcrRequest = function(body,customerId) {
+exports.addPcrRequest = function(body, insuranceId) {
   return new Promise(function(resolve, reject) {
     resolve()
   })

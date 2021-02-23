@@ -2,6 +2,7 @@
 
 const mongoose = require('mongoose')
 
+const pcrRequestSchema = require('./pcrRequest').pcrRequestSchema
 
 const takerSchema = new mongoose.Schema({
     takerId: { type: String, required: true },
@@ -29,7 +30,6 @@ const customerSchema = new mongoose.Schema({
     negativePcrHash: { type: String, required: true }
 })
 
-
 /**
  * Insurer model schema
  */
@@ -40,6 +40,7 @@ const insurerSchema = new mongoose.Schema({
     startDate: { type: String, required: true },
     finishDate: { type: String, required: true },
     customers: { type: [customerSchema], "default" : [], required: true },
+    pcrRequests: { type: [pcrRequestSchema], "default" : [], required: false },
     contractDate: { type: String, required: false }
 })
 

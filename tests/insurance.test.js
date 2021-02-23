@@ -52,6 +52,12 @@ describe('insurance', function() {
         assuredPrice: 50
     }
 
+    let pcrRequestData = {
+        id: "d290f1ee-6c54-4b01-90e6-d701748f0853",
+        customerId: "customer1",
+        requestDate: now.toISOString()
+    }
+
     beforeAll(async () => {
         // start db
         await dbHandler.connect()
@@ -121,6 +127,49 @@ describe('insurance', function() {
             .set('Authorization', 'Bearer ' + adminBearerToken)
             .expect('Content-Type', /json/)
             .expect(400, done)
+        })
+
+    })
+
+    describe('GET Insurances', () => {
+
+        it('Should return array with one insurance', done => {
+            request.get('/insurances')
+            .set('Accept', 'application/json')
+            .set('Authorization', 'Bearer ' + adminBearerToken)
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .then( (res) => {
+                // console.log(res.body)
+                expect(res.body.length).toEqual(1)
+                done()
+            })            
+        })
+    })
+
+    describe('POST PCR Request', () => {
+
+        it('Should return json a 201 status and create item', async done => {
+            // console.log(pcrRequestData)
+            await request.post(`/insurances/${insuranceData.id}/pcrRequests`)
+            .send(pcrRequestData)
+            .set('Accept', 'application/json')
+            .set('Authorization', 'Bearer ' + adminBearerToken)
+            .expect('Content-Type', /json/)
+            .expect(201)
+
+            // Check pcr request inserted
+            request.get('/insurances')
+            .set('Accept', 'application/json')
+            .set('Authorization', 'Bearer ' + adminBearerToken)
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .then( (res) => {
+                expect(res.body.length).toEqual(1)
+                expect(res.body[0].pcrRequests.length).toEqual(1)
+                expect(res.body[0].pcrRequests[0].id).toEqual(pcrRequestData.id)
+                done()
+            })
         })
 
     })

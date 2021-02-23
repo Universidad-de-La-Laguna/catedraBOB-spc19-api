@@ -9,6 +9,7 @@
  */
 
 const insurerModel = require('../../tests/models/insurer')
+const pcrRequestModel = require('../../tests/models/pcrRequest')
 
 const helpers = require('../../utils/helpers')
 
@@ -47,7 +48,9 @@ exports.addInsurancePolicy = function(body) {
 
 exports.getAllInsurancePolicy = function() {
   return new Promise(async function(resolve, reject) {
-    resolve()
+    // get all insurances
+    let insurances = await insurerModel.find({})
+    resolve(insurances)
   })
 }
 
@@ -55,13 +58,26 @@ exports.getAllInsurancePolicy = function() {
  * new PCR test request to a customer
  * Hotel create a new PCR Request to check-in os a customer
  *
- * body PcrRequestItem PCR Request to create (optional)
- * customerId CustomerId 
+ * body PcrRequestItem PCR Request to create
+ * insuranceId insuranceId
  * no response value expected for this operation
  **/
-exports.addPcrRequest = function(body,customerId) {
-  return new Promise(function(resolve, reject) {
-    resolve()
+exports.addPcrRequest = function(body, insuranceId) {
+  return new Promise(async function(resolve, reject) {
+    // check if insurance already exists
+    let insurance = await insurerModel.find({ id: insuranceId })
+    if (insurance.length !== 1) {
+      reject(new Error('Invalid data'))
+    }
+    else {
+      // Add PCR Request to array
+      let pcrRequest = await pcrRequestModel.create(body)
+
+      insurance[0].pcrRequests.push(pcrRequest)
+      await insurance[0].save()
+
+      resolve()
+    }
   })
 }
 
