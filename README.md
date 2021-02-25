@@ -33,9 +33,9 @@ npm run test
 
 ### Access Control
 
-The access control rules are specified in the API specification document itself (`api/openapi.yaml`), in the` x-acl-config` section. For more information, see the documentation for the [accesscontrol] module (https://www.npmjs.com/package/accesscontrol).
+The access control rules are specified in the API specification document itself (`api/openapi.yaml`), in the` x-acl-config` section. For more information, see the documentation for the [accesscontrol](https://www.npmjs.com/package/accesscontrol) and [oas-tools](https://www.npmjs.com/package/oas-tools#3-oasauth) modules.
 
->Las reglas de control de acceso se especifican en el propio documento de especificación de la API (`api/openapi.yaml`), en la sección `x-acl-config`. Para más información, ver la documentación del módulo [accesscontrol](https://www.npmjs.com/package/accesscontrol).
+>Las reglas de control de acceso se especifican en el propio documento de especificación de la API (`api/openapi.yaml`), en la sección `x-acl-config`. Para más información, ver la documentación de los módulos [accesscontrol](https://www.npmjs.com/package/accesscontrol) y [oas-tools](https://www.npmjs.com/package/oas-tools#3-oasauth).
 
 The role must be specified in the `role` field of the payload of the JWT token used. For example, the following token includes the `admin` role and this role can perform the same as the other roles in the system:
 

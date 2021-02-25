@@ -66,17 +66,23 @@ exports.addPcrRequest = function(body, insuranceId) {
   return new Promise(async function(resolve, reject) {
     // check if insurance already exists
     let insurance = await insurerModel.find({ id: insuranceId })
-    if (insurance.length !== 1) {
+    if (insurance.length !== 1)
       reject(new Error('Invalid data'))
-    }
     else {
-      // Add PCR Request to array
-      let pcrRequest = await pcrRequestModel.create(body)
+        // check if pcrRequest already exists
+        let pcrReq = insurance[0].pcrRequests.find(p => p.id === body.id)
+        if (typeof pcrReq !== 'undefined') {
+          reject(new Error('Conflict'))
+        }
+        else {
+          // Add PCR Request to array
+          let pcrRequest = await pcrRequestModel.create(body)
 
-      insurance[0].pcrRequests.push(pcrRequest)
-      await insurance[0].save()
+          insurance[0].pcrRequests.push(pcrRequest)
+          await insurance[0].save()
 
-      resolve()
+          resolve()
+        }
     }
   })
 }

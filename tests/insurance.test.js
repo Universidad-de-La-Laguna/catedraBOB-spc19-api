@@ -7,6 +7,9 @@ const dbHandler = require('./db-handler')
 
 const listenPort = 8080
 const adminBearerToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJyb2xlIjoiYWRtaW4iLCJpc3MiOiJVTEwifQ.OiehqHgx47KQqybnFhi3lFqooeFU4b_hfub_f5XcH6A"
+const takerBearerToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJyb2xlIjoidGFrZXIiLCJpc3MiOiJVTEwifQ.kBqHISpWyPbW5uNnadqCe4BlwyGbULrJHRGv0V-VLQ4"
+const insurerBearerToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJyb2xlIjoiaW5zdXJlciIsImlzcyI6IlVMTCJ9.xrJqsSp4lIp-rI4iHhYcPZnHqgMoa8BUgE-AJWNHTR4"
+const laboratoryBearerToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJyb2xlIjoibGFib3JhdG9yeSIsImlzcyI6IlVMTCJ9.Y0_Sn23eqGutg-fsbIURb9xpSSEtmwPBMXX_JSrvAvw"
 const NEGATIVEPCRHOURSDIFF = 80
 
 // Usar versión mockeada del servicio. Si se quiere usar versión real, basta con comentar la línea correspondiente.
@@ -70,50 +73,53 @@ describe('insurance', function() {
 
     describe('POST', function(){
 
-        it('Should return json a 201 status and create item', done => {
-
+        it('Should return 403 status by invalid role', done => {
             request.post('/insurances')
             .send(insuranceData)
             .set('Accept', 'application/json')
-            .set('Authorization', 'Bearer ' + adminBearerToken)
+            .set('Authorization', 'Bearer ' + insurerBearerToken)
+            .expect(403, done)
+        })
+
+        it('Should return json a 201 status and create item', done => {
+            request.post('/insurances')
+            .send(insuranceData)
+            .set('Accept', 'application/json')
+            .set('Authorization', 'Bearer ' + takerBearerToken)
             .expect('Content-Type', /json/)
             .expect(201, done)
         })
 
         it('Should return 400 error by mandatory data (startDate) is missing', (done) => {
-
             let fakeInsuranceData = Object.assign({}, insuranceData)
             delete fakeInsuranceData.startDate
 
             request.post('/insurances')
             .send(fakeInsuranceData)
             .set('Accept', 'application/json')
-            .set('Authorization', 'Bearer ' + adminBearerToken)
+            .set('Authorization', 'Bearer ' + takerBearerToken)
             .expect('Content-Type', /json/)
             .expect(400, done);
         })
 
         it('Should return 415 by no body content', (done) => {
-
             request.post('/insurances')
             .set('Accept', 'application/json')
-            .set('Authorization', 'Bearer ' + adminBearerToken)
+            .set('Authorization', 'Bearer ' + takerBearerToken)
             .expect('Content-Type', /json/)
             .expect(415, done);
         })
 
         it('Should return 409 by insurance already exists', (done) => {
-
             request.post('/insurances')
             .send(insuranceData)
             .set('Accept', 'application/json')
-            .set('Authorization', 'Bearer ' + adminBearerToken)
+            .set('Authorization', 'Bearer ' + takerBearerToken)
             .expect('Content-Type', /json/)
             .expect(409, done)
         })
 
         it('Should return 400 error by negative pcr date out of range', (done) => {
-
             let fakeInsuranceData = Object.assign({}, insuranceData)
 
             // Set negativePcrDate to now minus 80 hours (out of range)
@@ -124,7 +130,7 @@ describe('insurance', function() {
             request.post('/insurances')
             .send(fakeInsuranceData)
             .set('Accept', 'application/json')
-            .set('Authorization', 'Bearer ' + adminBearerToken)
+            .set('Authorization', 'Bearer ' + takerBearerToken)
             .expect('Content-Type', /json/)
             .expect(400, done)
         })
@@ -136,7 +142,7 @@ describe('insurance', function() {
         it('Should return array with one insurance', done => {
             request.get('/insurances')
             .set('Accept', 'application/json')
-            .set('Authorization', 'Bearer ' + adminBearerToken)
+            .set('Authorization', 'Bearer ' + takerBearerToken)
             .expect('Content-Type', /json/)
             .expect(200)
             .then( (res) => {
@@ -145,23 +151,32 @@ describe('insurance', function() {
                 done()
             })            
         })
+
     })
 
     describe('POST PCR Request', () => {
+
+        it('Should return 403 status by invalid role', done => {
+            request.post(`/insurances/${insuranceData.id}/pcrRequests`)
+            .send(pcrRequestData)
+            .set('Accept', 'application/json')
+            .set('Authorization', 'Bearer ' + insurerBearerToken)
+            .expect(403, done)
+        })
 
         it('Should return json a 201 status and create item', async done => {
             // console.log(pcrRequestData)
             await request.post(`/insurances/${insuranceData.id}/pcrRequests`)
             .send(pcrRequestData)
             .set('Accept', 'application/json')
-            .set('Authorization', 'Bearer ' + adminBearerToken)
+            .set('Authorization', 'Bearer ' + takerBearerToken)
             .expect('Content-Type', /json/)
             .expect(201)
 
             // Check pcr request inserted
             request.get('/insurances')
             .set('Accept', 'application/json')
-            .set('Authorization', 'Bearer ' + adminBearerToken)
+            .set('Authorization', 'Bearer ' + takerBearerToken)
             .expect('Content-Type', /json/)
             .expect(200)
             .then( (res) => {
@@ -170,6 +185,27 @@ describe('insurance', function() {
                 expect(res.body[0].pcrRequests[0].id).toEqual(pcrRequestData.id)
                 done()
             })
+        })
+
+        it('Should return 409 status by pcrRequest already exists', done => {
+            request.post(`/insurances/${insuranceData.id}/pcrRequests`)
+            .send(pcrRequestData)
+            .set('Accept', 'application/json')
+            .set('Authorization', 'Bearer ' + takerBearerToken)
+            .expect('Content-Type', /json/)
+            .expect(409, done)
+        })
+
+        it('Should return 400 status by incomplete pcrRequest', done => {
+            let fakePcrRequestData = Object.assign({}, pcrRequestData)
+            delete fakePcrRequestData.id
+
+            request.post(`/insurances/${insuranceData.id}/pcrRequests`)
+            .send(fakePcrRequestData)
+            .set('Accept', 'application/json')
+            .set('Authorization', 'Bearer ' + takerBearerToken)
+            .expect('Content-Type', /json/)
+            .expect(400, done)
         })
 
     })

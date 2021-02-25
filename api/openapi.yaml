@@ -379,11 +379,11 @@ components:
 # Authorization rules. View doc in nodejs accesscontrol module. Role must be specified in role jwt attribute
       x-acl-config:
         insurer:
-          "insurances":
-            "create:any":
-              - "*"
-            "read:any":
-              - "*"
+          # "insurances":
+          #   "create:any":
+          #     - "*"
+          #   "read:any":
+          #     - "*"
           "insurances/checkPayment":
             "create:any":
               - "*"
@@ -393,7 +393,7 @@ components:
               - "*"
             "read:any":
               - "*"
-          "/insurances/pcrRequests":
+          "insurances/pcrRequests":
             "create:any":
               - "*"
         laboratory:
