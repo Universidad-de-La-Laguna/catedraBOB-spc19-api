@@ -396,6 +396,11 @@ components:
           "insurances/pcrRequests":
             "create:any":
               - "*"
+          # FIX: el modulo accesscontrol interpreta los recursos como cualquier uri 
+          # que contenga el nombre del recurso. Por lo tanto, el autorizar el recurso "insurance"
+          # está implicitamente autorizando "insurances/pcrRequests".
+          # Esto debería arreglarse, bien encontrando la forma de especificar los recursos de forma
+          # más restrictiva, o cambiando la api para ajustarse a esta norma.
         laboratory:
           "insurances/pcrRequests":
             "read:any":
