@@ -157,7 +157,7 @@ describe('insurance', function() {
     describe('POST PCR Request', () => {
 
         it('Should return 403 status by invalid role', done => {
-            request.post(`/insurances/${insuranceData.id}/pcrRequests`)
+            request.post(`/insurance/${insuranceData.id}/pcrRequests`)
             .send(pcrRequestData)
             .set('Accept', 'application/json')
             .set('Authorization', 'Bearer ' + insurerBearerToken)
@@ -166,7 +166,7 @@ describe('insurance', function() {
 
         it('Should return json a 201 status and create item', async done => {
             // console.log(pcrRequestData)
-            await request.post(`/insurances/${insuranceData.id}/pcrRequests`)
+            await request.post(`/insurance/${insuranceData.id}/pcrRequests`)
             .send(pcrRequestData)
             .set('Accept', 'application/json')
             .set('Authorization', 'Bearer ' + takerBearerToken)
@@ -188,7 +188,7 @@ describe('insurance', function() {
         })
 
         it('Should return 409 status by pcrRequest already exists', done => {
-            request.post(`/insurances/${insuranceData.id}/pcrRequests`)
+            request.post(`/insurance/${insuranceData.id}/pcrRequests`)
             .send(pcrRequestData)
             .set('Accept', 'application/json')
             .set('Authorization', 'Bearer ' + takerBearerToken)
@@ -200,7 +200,7 @@ describe('insurance', function() {
             let fakePcrRequestData = Object.assign({}, pcrRequestData)
             delete fakePcrRequestData.id
 
-            request.post(`/insurances/${insuranceData.id}/pcrRequests`)
+            request.post(`/insurance/${insuranceData.id}/pcrRequests`)
             .send(fakePcrRequestData)
             .set('Accept', 'application/json')
             .set('Authorization', 'Bearer ' + takerBearerToken)

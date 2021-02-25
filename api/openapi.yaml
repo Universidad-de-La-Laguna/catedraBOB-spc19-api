@@ -53,7 +53,7 @@ paths:
         "403":
           description: Security token is missing or invalid
       x-swagger-router-controller: insurancesController
-  /insurances/{insuranceId}/pcrRequests:
+  /insurance/{insuranceId}/pcrRequests:
     parameters:
     - name: insuranceId
       in: path
@@ -82,7 +82,7 @@ paths:
         "409":
           description: An existing PCR Request already exists
       x-swagger-router-controller: insurancesController
-  /insurances/{insuranceId}/pcrRequests/{pcrRequestId}:
+  /insurance/{insuranceId}/pcrRequests/{pcrRequestId}:
     parameters:
     - name: insuranceId
       in: path
@@ -146,7 +146,7 @@ paths:
         "404":
           description: Item not found
       x-swagger-router-controller: insurancesController
-  /insurances/{insuranceId}/checkPayment:
+  /insurance/{insuranceId}/checkPayment:
     parameters:
     - name: insuranceId
       in: path
@@ -379,30 +379,23 @@ components:
 # Authorization rules. View doc in nodejs accesscontrol module. Role must be specified in role jwt attribute
       x-acl-config:
         insurer:
-          # "insurances":
-          #   "create:any":
-          #     - "*"
-          #   "read:any":
-          #     - "*"
-          "insurances/checkPayment":
-            "create:any":
-              - "*"
-        taker:
           "insurances":
             "create:any":
               - "*"
             "read:any":
               - "*"
-          "insurances/pcrRequests":
+          "insurance/checkPayment":
             "create:any":
               - "*"
-          # FIX: el modulo accesscontrol interpreta los recursos como cualquier uri 
-          # que contenga el nombre del recurso. Por lo tanto, el autorizar el recurso "insurance"
-          # está implicitamente autorizando "insurances/pcrRequests".
-          # Esto debería arreglarse, bien encontrando la forma de especificar los recursos de forma
-          # más restrictiva, o cambiando la api para ajustarse a esta norma.
+        taker:
+          "insurances":
+            "read:any":
+              - "*"
+          "insurance/pcrRequests":
+            "create:any":
+              - "*"
         laboratory:
-          "insurances/pcrRequests":
+          "insurance/pcrRequests":
             "read:any":
               - "*"
             "update:any":
