@@ -397,7 +397,7 @@ components:
             "create:any":
               - "*"
         laboratory:
-          "customers/pcrRequests":
+          "insurances/pcrRequests":
             "read:any":
               - "*"
             "update:any":
