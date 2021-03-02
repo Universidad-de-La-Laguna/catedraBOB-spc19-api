@@ -95,19 +95,17 @@ exports.addPcrRequest = function(body, insuranceId) {
  * returns PcrRequestItem
  **/
 exports.getPcrRequest = function(insuranceId, pcrRequestId) {
-  return new Promise(function(resolve, reject) {
-    var examples = {};
-    examples['application/json'] = {
-      "result" : "POSITIVE",
-      "customerId" : "customer1",
-      "requestDate" : "2016-08-29T09:12:33.001Z",
-      "id" : "562b2dd8-5a4f-11eb-ae93-0242ac130002"
-    }
-
-    if (Object.keys(examples).length > 0) {
-      resolve(examples[Object.keys(examples)[0]])
-    } else {
-      resolve()
+  return new Promise(async function(resolve, reject) {
+    let insurance = await insurerModel.find({ id: insuranceId })
+    if (insurance.length !== 1)
+      reject(new Error('Invalid data'))
+    else {
+      // check if pcrRequest already exists
+      let pcrReq = insurance[0].pcrRequests.find(p => p.id === pcrRequestId)
+      if (typeof pcrReq === 'undefined')
+        reject(new Error('Conflict'))
+      else
+        resolve(pcrReq)
     }
   })
 }

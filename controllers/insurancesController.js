@@ -26,7 +26,7 @@ module.exports.getAllInsurancePolicy = function getAllInsurancePolicy (req, res,
     })
 }
 
-module.exports.addPcrRequest = function addPcrRequest (req, res, next, insuranceId) {
+module.exports.addPcrRequest = function addPcrRequest (req, res, next) {
   insuranceService.addPcrRequest(req.body, req.params.insuranceId)
     .then(function (response) {
       utils.writeJson(res, response, 201)
@@ -38,8 +38,8 @@ module.exports.addPcrRequest = function addPcrRequest (req, res, next, insurance
     })
 }
 
-module.exports.getPcrRequest = function getPcrRequest (req, res, next, insuranceId, pcrRequestId) {
-  insuranceService.getPcrRequest(insuranceId, pcrRequestId)
+module.exports.getPcrRequest = function getPcrRequest (req, res, next) {
+  insuranceService.getPcrRequest(req.params.insuranceId, req.params.pcrRequestId)
     .then(function (response) {
       utils.writeJson(res, response)
     })

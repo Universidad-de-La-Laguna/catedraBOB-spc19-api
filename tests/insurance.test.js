@@ -235,6 +235,36 @@ describe('insurance', function() {
 
     })
 
+    describe('GET PCR Request', () => {
+
+        it('Should return 403 status by invalid role', done => {
+            request.get(`/insurance/${insuranceData.id}/pcrRequests/${pcrRequestData.id}`)
+            .set('Accept', 'application/json')
+            .set('Authorization', 'Bearer ' + insurerBearerToken)
+            .expect(403, done)
+        })
+
+        it('Should return 403 status by invalid role', done => {
+            request.get(`/insurance/${insuranceData.id}/pcrRequests/${pcrRequestData.id}`)
+            .set('Accept', 'application/json')
+            .set('Authorization', 'Bearer ' + takerBearerToken)
+            .expect(403, done)
+        })
+
+        it('Laboratories can get PCRRequest detail', done => {
+            request.get(`/insurance/${insuranceData.id}/pcrRequests/${pcrRequestData.id}`)
+            .set('Accept', 'application/json')
+            .set('Authorization', 'Bearer ' + laboratoryBearerToken)
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .then( (res) => {
+                console.log(res.body)
+                expect(res.body.id).toEqual(pcrRequestData.id)
+                done()
+            })
+        })
+    })
+
     afterAll(async done => {
         // Close http server
         server.close(done)
