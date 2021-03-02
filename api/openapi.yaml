@@ -123,7 +123,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PcrResult'
+              $ref: '#/components/schemas/PcrRequestItem'
       responses:
         "200":
           description: PCR Request updated

@@ -119,9 +119,28 @@ exports.getPcrRequest = function(insuranceId, pcrRequestId) {
  * pcrRequestId PcrId 
  * no response value expected for this operation
  **/
-exports.setResultPcrRequest = function(body,customerId,pcrRequestId) {
-  return new Promise(function(resolve, reject) {
-    resolve()
+exports.setResultPcrRequest = function(body, insuranceId, pcrRequestId) {
+  return new Promise(async function(resolve, reject) {
+    let insurance = await insurerModel.find({ id: insuranceId })
+    if (insurance.length !== 1)
+      reject(new Error('Invalid data'))
+    else {
+      // check if pcrRequest already exists
+      let pcrReqIndex = insurance[0].pcrRequests.findIndex(p => p.id === pcrRequestId)
+      console.log(pcrReqIndex)
+      if (pcrReqIndex === -1)
+        reject(new Error('Conflict'))
+      else {
+        // update PCR Request
+        insurance[0].pcrRequests[pcrReqIndex].result = body.result
+        insurance[0].pcrRequests[pcrReqIndex].resultDate = (new Date()).toISOString()
+
+        console.log(insurance[0].pcrRequests[pcrReqIndex])
+
+        await insurance[0].save()
+        resolve()
+      }
+    }
   })
 }
 
