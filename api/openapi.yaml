@@ -282,6 +282,7 @@ components:
           enum:
           - MALE
           - FEMALE
+          - UNINFORMED
         customerBirthDate:
           $ref: '#/components/schemas/DateFormat'
         customerTelephone:
