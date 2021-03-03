@@ -190,7 +190,6 @@ describe('insurance', function() {
         })
 
         it('Should return json a 201 status and create item', async done => {
-            // console.log(pcrRequestData)
             await request.post(`/insurance/${insuranceData.id}/pcrRequests`)
             .send(pcrRequestData)
             .set('Accept', 'application/json')
@@ -251,6 +250,26 @@ describe('insurance', function() {
             .expect(403, done)
         })
 
+        it('Error because insurerId not exist', done => {
+            let fakeInsurerId = 'FAKEINSURERID'
+
+            request.get(`/insurance/${fakeInsurerId}/pcrRequests/${pcrRequestData.id}`)
+            .set('Accept', 'application/json')
+            .set('Authorization', 'Bearer ' + laboratoryBearerToken)
+            .expect('Content-Type', /json/)
+            .expect(400, done)
+        })
+
+        it('Error because PCRRequest not exist', done => {
+            let fakePcrRequestId = 'FAKEPCRREQUESTID'
+
+            request.get(`/insurance/${insuranceData.id}/pcrRequests/${fakePcrRequestId}`)
+            .set('Accept', 'application/json')
+            .set('Authorization', 'Bearer ' + laboratoryBearerToken)
+            .expect('Content-Type', /json/)
+            .expect(400, done)
+        })
+
         it('Laboratories can get PCRRequest detail', done => {
             request.get(`/insurance/${insuranceData.id}/pcrRequests/${pcrRequestData.id}`)
             .set('Accept', 'application/json')
@@ -262,6 +281,7 @@ describe('insurance', function() {
                 done()
             })
         })
+
     })
 
     describe('PATCH PCR Request', () => {
@@ -301,6 +321,60 @@ describe('insurance', function() {
                 expect(res.body.result).toEqual("POSITIVE")
                 done()
             })
+        })
+
+    })
+
+    describe('DELETE PCR Request', () => {
+
+        it('Insurers can not delete a PCRRequest', done => {
+            request.delete(`/insurance/${insuranceData.id}/pcrRequests/${pcrRequestData.id}`)
+            .set('Accept', 'application/json')
+            .set('Authorization', 'Bearer ' + insurerBearerToken)
+            .expect(403, done)
+        })
+
+        it('Laboratories can not delete a PCRRequest', done => {
+            request.delete(`/insurance/${insuranceData.id}/pcrRequests/${pcrRequestData.id}`)
+            .set('Accept', 'application/json')
+            .set('Authorization', 'Bearer ' + laboratoryBearerToken)
+            .expect(403, done)
+        })
+
+        it('Error because insuranceID not exists', done => {
+            let fakeInsuranceId = 'FAKEINSURANCEID'
+
+            request.delete(`/insurance/${fakeInsuranceId}/pcrRequests/${pcrRequestData.id}`)
+            .set('Accept', 'application/json')
+            .set('Authorization', 'Bearer ' + takerBearerToken)
+            .expect('Content-Type', /json/)
+            .expect(400, done)
+        })
+
+        it('Error because pcrRequestId not exists', done => {
+            let fakePcrRequestId = 'FAKEPCRREQUESTID'
+            
+            request.delete(`/insurance/${insuranceData.id}/pcrRequests/${fakePcrRequestId}`)
+            .set('Accept', 'application/json')
+            .set('Authorization', 'Bearer ' + takerBearerToken)
+            .expect('Content-Type', /json/)
+            .expect(400, done)
+        })
+
+        it('Takers can delete a PCRRequest', async done => {
+
+            await request.delete(`/insurance/${insuranceData.id}/pcrRequests/${pcrRequestData.id}`)
+            .set('Accept', 'application/json')
+            .set('Authorization', 'Bearer ' + takerBearerToken)
+            .expect('Content-Type', /json/)
+            .expect(200)
+   
+            // Check pcr request deleted
+            request.get(`/insurance/${insuranceData.id}/pcrRequests/${pcrRequestData.id}`)
+            .set('Accept', 'application/json')
+            .set('Authorization', 'Bearer ' + laboratoryBearerToken)
+            .expect('Content-Type', /json/)
+            .expect(400, done)
         })
 
     })

@@ -74,11 +74,11 @@ exports.getPcrRequest = function(insuranceId, pcrRequestId) {
  * Laboratory set the PCR Request Result
  *
  * body String  (optional)
- * customerId CustomerId 
+ * insuranceId InsuranceId 
  * pcrRequestId PcrId 
  * no response value expected for this operation
  **/
-exports.setResultPcrRequest = function(body, customerId, pcrRequestId) {
+exports.setResultPcrRequest = function(body, insuranceId, pcrRequestId) {
   return new Promise(function(resolve, reject) {
     resolve()
   })
@@ -89,11 +89,11 @@ exports.setResultPcrRequest = function(body, customerId, pcrRequestId) {
  * Cancel an existing PCR Request
  * 
  * body String  (optional)
- * customerId CustomerId 
+ * insuranceId InsuranceId 
  * pcrRequestId PcrId 
  * no response value expected for this operation
  */
-exports.deletePcrRequest = function(body, customerId, pcrRequestId) {
+exports.deletePcrRequest = function(insuranceId, pcrRequestId) {
   return new Promise(function(resolve, reject) {
     resolve()
   })

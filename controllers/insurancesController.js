@@ -44,7 +44,9 @@ module.exports.getPcrRequest = function getPcrRequest (req, res, next) {
       utils.writeJson(res, response)
     })
     .catch(function (response) {
-      utils.writeJson(res, response)
+      let statusCode = (response instanceof Error) ? config.errorStatusCodes[response.message] : 500
+
+      utils.writeJson(res, response, statusCode)
     })
 }
 
@@ -60,13 +62,15 @@ module.exports.setResultPcrRequest = function setResultPcrRequest (req, res, nex
     })
 }
 
-module.exports.deletePcrRequest = function deletePcrRequest (req, res, next, body, customerId, pcrRequestId) {
-  insuranceService.deletePcrRequest(body, customerId, pcrRequestId)
+module.exports.deletePcrRequest = function deletePcrRequest (req, res, next) {
+  insuranceService.deletePcrRequest(req.params.insuranceId, req.params.pcrRequestId)
     .then(function (response) {
       utils.writeJson(res, response)
     })
     .catch(function (response) {
-      utils.writeJson(res, response)
+      let statusCode = (response instanceof Error) ? config.errorStatusCodes[response.message] : 500
+
+      utils.writeJson(res, response, statusCode)
     })
 }
 

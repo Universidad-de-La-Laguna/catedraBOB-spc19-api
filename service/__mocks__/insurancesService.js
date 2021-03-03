@@ -103,7 +103,7 @@ exports.getPcrRequest = function(insuranceId, pcrRequestId) {
       // check if pcrRequest already exists
       let pcrReq = insurance[0].pcrRequests.find(p => p.id === pcrRequestId)
       if (typeof pcrReq === 'undefined')
-        reject(new Error('Conflict'))
+        reject(new Error('Invalid data'))
       else
         resolve(pcrReq)
     }
@@ -125,10 +125,10 @@ exports.setResultPcrRequest = function(body, insuranceId, pcrRequestId) {
     if (insurance.length !== 1)
       reject(new Error('Invalid data'))
     else {
-      // check if pcrRequest already exists
+      // check if pcrRequest exists
       let pcrReqIndex = insurance[0].pcrRequests.findIndex(p => p.id === pcrRequestId)
       if (pcrReqIndex == -1)
-        reject(new Error('Conflict'))
+        reject(new Error('Invalid data'))
       else {
         // update PCR Request
         await insurerModel.updateOne({id: insuranceId, 'pcrRequests.id': pcrRequestId}, {'$set': {
@@ -151,9 +151,27 @@ exports.setResultPcrRequest = function(body, insuranceId, pcrRequestId) {
  * pcrRequestId PcrId 
  * no response value expected for this operation
  */
-exports.deletePcrRequest = function(body, customerId, pcrRequestId) {
-  return new Promise(function(resolve, reject) {
-    resolve()
+exports.deletePcrRequest = function(insuranceId, pcrRequestId) {
+  return new Promise(async function(resolve, reject) {
+    let insurance = await insurerModel.find({ id: insuranceId })
+    if (insurance.length !== 1)
+      reject(new Error('Invalid data'))
+    else {
+      // check if pcrRequest exists
+      let pcrReqIndex = insurance[0].pcrRequests.findIndex(p => p.id === pcrRequestId)
+      if (pcrReqIndex == -1)
+        reject(new Error('Invalid data'))
+      else {
+        // delete PCR Request
+        await insurerModel.updateOne({id: insuranceId, 'pcrRequests.id': pcrRequestId}, {
+          '$pull': {
+            'pcrRequests': { id: pcrRequestId }
+          }
+        })
+
+        resolve()
+      }
+    }
   })
 }
 

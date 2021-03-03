@@ -402,6 +402,8 @@ components:
           "insurance/pcrRequests":
             "create:any":
               - "*"
+            "delete:any":
+              - "*"
         laboratory:
           "insurance/pcrRequests":
             "read:any":
