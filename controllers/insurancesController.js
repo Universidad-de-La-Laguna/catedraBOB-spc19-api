@@ -54,7 +54,9 @@ module.exports.setResultPcrRequest = function setResultPcrRequest (req, res, nex
       utils.writeJson(res, response)
     })
     .catch(function (response) {
-      utils.writeJson(res, response)
+      let statusCode = (response instanceof Error) ? config.errorStatusCodes[response.message] : 500
+
+      utils.writeJson(res, response, statusCode)
     })
 }
 

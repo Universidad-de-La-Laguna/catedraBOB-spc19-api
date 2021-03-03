@@ -127,17 +127,15 @@ exports.setResultPcrRequest = function(body, insuranceId, pcrRequestId) {
     else {
       // check if pcrRequest already exists
       let pcrReqIndex = insurance[0].pcrRequests.findIndex(p => p.id === pcrRequestId)
-      console.log(pcrReqIndex)
-      if (pcrReqIndex === -1)
+      if (pcrReqIndex == -1)
         reject(new Error('Conflict'))
       else {
         // update PCR Request
-        insurance[0].pcrRequests[pcrReqIndex].result = body.result
-        insurance[0].pcrRequests[pcrReqIndex].resultDate = (new Date()).toISOString()
+        await insurerModel.updateOne({id: insuranceId, 'pcrRequests.id': pcrRequestId}, {'$set': {
+          'pcrRequests.$.result': body.result,
+          'pcrRequests.$.resultDate': (new Date()).toISOString()
+        }})
 
-        console.log(insurance[0].pcrRequests[pcrReqIndex])
-
-        await insurance[0].save()
         resolve()
       }
     }

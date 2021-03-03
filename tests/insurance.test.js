@@ -265,14 +265,14 @@ describe('insurance', function() {
     })
 
     describe('PATCH PCR Request', () => {
-        it('Should return 403 status by invalid role', done => {
+        it('Insurers can not update a PCRRequest', done => {
             request.patch(`/insurance/${insuranceData.id}/pcrRequests/${pcrRequestData.id}`)
             .set('Accept', 'application/json')
             .set('Authorization', 'Bearer ' + insurerBearerToken)
             .expect(403, done)
         })
 
-        it('Should return 403 status by invalid role', done => {
+        it('Takers can not update a PCRRequest', done => {
             request.patch(`/insurance/${insuranceData.id}/pcrRequests/${pcrRequestData.id}`)
             .set('Accept', 'application/json')
             .set('Authorization', 'Bearer ' + takerBearerToken)
@@ -283,7 +283,7 @@ describe('insurance', function() {
             let pcrRequestDataModified = Object.assign({}, pcrRequestData)
             pcrRequestDataModified.result = "POSITIVE"
 
-            await request.patch(`/insurance/${insuranceData.id}/pcrRequests/${pcrRequestData.id}`)
+            await request.patch(`/insurance/${insuranceData.id}/pcrRequests/${pcrRequestDataModified.id}`)
             .send(pcrRequestDataModified)
             .set('Accept', 'application/json')
             .set('Authorization', 'Bearer ' + laboratoryBearerToken)
@@ -291,15 +291,13 @@ describe('insurance', function() {
             .expect(200)
    
             // Check pcr request updated
-            request.get(`/insurance/${insuranceData.id}/pcrRequests/${pcrRequestData.id}`)
+            request.get(`/insurance/${insuranceData.id}/pcrRequests/${pcrRequestDataModified.id}`)
             .set('Accept', 'application/json')
             .set('Authorization', 'Bearer ' + laboratoryBearerToken)
             .expect('Content-Type', /json/)
             .expect(200)
             .then( (res) => {
-                console.log(res.body)
                 expect(res.body.result).toEqual("POSITIVE")
-                // FIX: check updated pcrRequest
                 done()
             })
         })
