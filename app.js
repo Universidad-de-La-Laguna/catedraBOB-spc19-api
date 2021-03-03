@@ -25,7 +25,7 @@ var config = require('./config')
 var options_object = {
     controllers: path.join(__dirname, './controllers'),
     checkControllers: true,
-    loglevel: 'debug',
+    loglevel: 'error',
     strict: true, // stop in error validations
     router: true,
     validator: true,
