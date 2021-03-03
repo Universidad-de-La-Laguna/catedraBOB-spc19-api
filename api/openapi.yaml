@@ -123,7 +123,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PcrRequestItem'
+              $ref: '#/components/schemas/PcrRequestResult'
       responses:
         "200":
           description: PCR Request updated
@@ -354,6 +354,13 @@ components:
         requestDate: "2016-08-29T09:12:33.001Z"
         resultDate: null
         id: "562b2dd8-5a4f-11eb-ae93-0242ac130002"
+    PcrRequestResult:
+      required:
+      - result
+      type: object
+      properties:
+        result:
+          $ref: '#/components/schemas/PcrResult'
     OrderPaymentItem:
       required:
       - insurance

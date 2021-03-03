@@ -280,23 +280,24 @@ describe('insurance', function() {
         })
 
         it('Laboratories can update a PCRRequest', async done => {
-            let pcrRequestDataModified = Object.assign({}, pcrRequestData)
-            pcrRequestDataModified.result = "POSITIVE"
+            let pcrRequestResult = {
+                result: "POSITIVE"
+            }
 
-            await request.patch(`/insurance/${insuranceData.id}/pcrRequests/${pcrRequestDataModified.id}`)
-            .send(pcrRequestDataModified)
+            await request.patch(`/insurance/${insuranceData.id}/pcrRequests/${pcrRequestData.id}`)
+            .send(pcrRequestResult)
             .set('Accept', 'application/json')
             .set('Authorization', 'Bearer ' + laboratoryBearerToken)
             .expect('Content-Type', /json/)
             .expect(200)
    
             // Check pcr request updated
-            request.get(`/insurance/${insuranceData.id}/pcrRequests/${pcrRequestDataModified.id}`)
+            request.get(`/insurance/${insuranceData.id}/pcrRequests/${pcrRequestData.id}`)
             .set('Accept', 'application/json')
             .set('Authorization', 'Bearer ' + laboratoryBearerToken)
             .expect('Content-Type', /json/)
             .expect(200)
-            .then( (res) => {
+            .then( res => {
                 expect(res.body.result).toEqual("POSITIVE")
                 done()
             })
