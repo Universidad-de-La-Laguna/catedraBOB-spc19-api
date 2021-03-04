@@ -4,7 +4,8 @@ module.exports = {
         issuer: process.env.JWT_ISSUER || 'ULL'
     },
     businessParams: {
-        negativePcrHours: parseInt(process.env.NEGATIVEPCRHOURS) || 72
+        negativePcrHours: parseInt(process.env.NEGATIVEPCRHOURS) || 72,
+        daysToCompensate: parseInt(process.env.DAYSTOCOMPENSATE) || 10
     },
     errorStatusCodes: {
         "Missing data": 415,

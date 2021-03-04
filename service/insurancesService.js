@@ -10,8 +10,7 @@
  **/
 exports.addInsurancePolicy = function(body) {
   return new Promise(function(resolve, reject) {
-    //TODO: desplegar en la blockchain un nuevo contrato de seguro
-
+    //TODO
     reject()
   })
 }
@@ -24,6 +23,7 @@ exports.addInsurancePolicy = function(body) {
  */
 exports.getAllInsurancePolicy = function() {
   return new Promise(function(resolve, reject) {
+    //TODO
     resolve()
   })
 }
@@ -39,6 +39,7 @@ exports.getAllInsurancePolicy = function() {
  **/
 exports.addPcrRequest = function(body, insuranceId) {
   return new Promise(function(resolve, reject) {
+    //TODO
     resolve()
   })
 }
@@ -53,19 +54,8 @@ exports.addPcrRequest = function(body, insuranceId) {
  **/
 exports.getPcrRequest = function(insuranceId, pcrRequestId) {
   return new Promise(function(resolve, reject) {
-    var examples = {};
-    examples['application/json'] = {
-      "result" : "POSITIVE",
-      "customerId" : "customer1",
-      "requestDate" : "2016-08-29T09:12:33.001Z",
-      "id" : "562b2dd8-5a4f-11eb-ae93-0242ac130002"
-    }
-
-    if (Object.keys(examples).length > 0) {
-      resolve(examples[Object.keys(examples)[0]])
-    } else {
-      resolve()
-    }
+    //TODO
+    resolve()
   })
 }
 
@@ -80,6 +70,7 @@ exports.getPcrRequest = function(insuranceId, pcrRequestId) {
  **/
 exports.setResultPcrRequest = function(body, insuranceId, pcrRequestId) {
   return new Promise(function(resolve, reject) {
+    //TODO
     resolve()
   })
 }
@@ -95,6 +86,7 @@ exports.setResultPcrRequest = function(body, insuranceId, pcrRequestId) {
  */
 exports.deletePcrRequest = function(insuranceId, pcrRequestId) {
   return new Promise(function(resolve, reject) {
+    //TODO
     resolve()
   })
 }
@@ -103,12 +95,12 @@ exports.deletePcrRequest = function(insuranceId, pcrRequestId) {
  * order payment for insurance policy
  * Order the payment to customer for accomplishment of blockchain contract
  *
- * body OrderPaymentItem Order payment detail (optional)
  * insuranceId InsuranceId 
  * no response value expected for this operation
  **/
-exports.orderPayment = function(body, insuranceId) {
+exports.checkPayment = function(insuranceId) {
   return new Promise(function(resolve, reject) {
+    //TODO
     resolve()
   })
 }

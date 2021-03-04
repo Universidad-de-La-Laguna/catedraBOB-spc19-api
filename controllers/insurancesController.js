@@ -74,12 +74,14 @@ module.exports.deletePcrRequest = function deletePcrRequest (req, res, next) {
     })
 }
 
-module.exports.orderPayment = function orderPayment (req, res, next, body, insuranceId) {
-  insuranceService.orderPayment(body, insuranceId)
+module.exports.checkPayment = function checkPayment (req, res, next) {
+  insuranceService.checkPayment(req.params.insuranceId)
     .then(function (response) {
       utils.writeJson(res, response)
     })
     .catch(function (response) {
-      utils.writeJson(res, response)
+      let statusCode = (response instanceof Error) ? config.errorStatusCodes[response.message] : 500
+
+      utils.writeJson(res, response, statusCode)
     })
 }

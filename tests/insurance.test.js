@@ -4,6 +4,7 @@ const supertest = require('supertest')
 const app = require('../app')
 const appPromise = require('../app').appPromise
 const dbHandler = require('./db-handler')
+const config = require('../config')
 
 const listenPort = 8080
 const adminBearerToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJyb2xlIjoiYWRtaW4iLCJpc3MiOiJVTEwifQ.OiehqHgx47KQqybnFhi3lFqooeFU4b_hfub_f5XcH6A"
@@ -11,6 +12,8 @@ const takerBearerToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0N
 const insurerBearerToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJyb2xlIjoiaW5zdXJlciIsImlzcyI6IlVMTCJ9.xrJqsSp4lIp-rI4iHhYcPZnHqgMoa8BUgE-AJWNHTR4"
 const laboratoryBearerToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJyb2xlIjoibGFib3JhdG9yeSIsImlzcyI6IlVMTCJ9.Y0_Sn23eqGutg-fsbIURb9xpSSEtmwPBMXX_JSrvAvw"
 const NEGATIVEPCRHOURSDIFF = 80
+const FAKEINSURANCEID = "FAKEINSURANCEID"
+const FAKEPCRREQUESTID = "FAKEPCRREQUESTID"
 
 // Usar versión mockeada del servicio. Si se quiere usar versión real, basta con comentar la línea correspondiente.
 // Las versiones mockeadas usan una persistencia con MongoDB en lugar de blockchain
@@ -98,7 +101,7 @@ describe('insurance', function() {
             .expect(201, done)
         })
 
-        it('Should return 400 error by mandatory data (startDate) is missing', (done) => {
+        it('Should return 400 error by mandatory data (startDate) is missing', done => {
             let fakeInsuranceData = Object.assign({}, insuranceData)
             delete fakeInsuranceData.startDate
 
@@ -110,7 +113,7 @@ describe('insurance', function() {
             .expect(400, done);
         })
 
-        it('Should return 415 by no body content', (done) => {
+        it('Should return 415 by no body content', done => {
             request.post('/insurances')
             .set('Accept', 'application/json')
             .set('Authorization', 'Bearer ' + insurerBearerToken)
@@ -118,7 +121,7 @@ describe('insurance', function() {
             .expect(415, done);
         })
 
-        it('Should return 409 by insurance already exists', (done) => {
+        it('Should return 409 by insurance already exists', done => {
             request.post('/insurances')
             .send(insuranceData)
             .set('Accept', 'application/json')
@@ -127,7 +130,7 @@ describe('insurance', function() {
             .expect(409, done)
         })
 
-        it('Should return 400 error by negative pcr date out of range', (done) => {
+        it('Should return 400 error by negative pcr date out of range', done => {
             let fakeInsuranceData = Object.assign({}, insuranceData)
 
             // Set negativePcrDate to now minus 80 hours (out of range)
@@ -261,9 +264,7 @@ describe('insurance', function() {
         })
 
         it('Error because PCRRequest not exist', done => {
-            let fakePcrRequestId = 'FAKEPCRREQUESTID'
-
-            request.get(`/insurance/${insuranceData.id}/pcrRequests/${fakePcrRequestId}`)
+            request.get(`/insurance/${insuranceData.id}/pcrRequests/${FAKEPCRREQUESTID}`)
             .set('Accept', 'application/json')
             .set('Authorization', 'Bearer ' + laboratoryBearerToken)
             .expect('Content-Type', /json/)
@@ -325,6 +326,59 @@ describe('insurance', function() {
 
     })
 
+    describe('POST Checkpayment', () => {
+
+        it('Takers can not request a CheckPayment', done => {
+            request.post(`/insurance/${insuranceData.id}/checkPayment`)
+            .set('Accept', 'application/json')
+            .set('Authorization', 'Bearer ' + takerBearerToken)
+            .expect(403, done)
+        })
+
+        it('Laboratories can not request a CheckPayment', done => {
+            request.post(`/insurance/${insuranceData.id}/checkPayment`)
+            .set('Accept', 'application/json')
+            .set('Authorization', 'Bearer ' + laboratoryBearerToken)
+            .expect(403, done)
+        })
+
+        it('Error because insurerId not exists', done => {
+            request.post(`/insurance/${FAKEINSURANCEID}/checkPayment`)
+            .set('Accept', 'application/json')
+            .set('Authorization', 'Bearer ' + insurerBearerToken)
+            .expect(400, done)
+        })
+
+        it('Insurers can request a CheckPayment and correct calculate', async done => {
+            // add a second pcrrequest
+            let secondPcrRequestData = Object.assign({}, pcrRequestData)
+            secondPcrRequestData.id = 'secondPcrRequestDataId'
+            secondPcrRequestData.result = 'POSITIVE'
+            secondPcrRequestData.resultDate = now.toISOString()
+
+            const NUMBEROFPOSITIVEREQUESTS = 2
+            let expectedIndemnization = NUMBEROFPOSITIVEREQUESTS * config.businessParams.daysToCompensate * insuranceData.assuredPrice
+
+            await request.post(`/insurance/${insuranceData.id}/pcrRequests`)
+            .send(secondPcrRequestData)
+            .set('Accept', 'application/json')
+            .set('Authorization', 'Bearer ' + takerBearerToken)
+            .expect('Content-Type', /json/)
+            .expect(201)
+
+            request.post(`/insurance/${insuranceData.id}/checkPayment`)
+            .set('Accept', 'application/json')
+            .set('Authorization', 'Bearer ' + insurerBearerToken)
+            .expect(200)
+            .then( res => {
+                expect(res.body.insuranceId).toEqual(insuranceData.id)                
+                expect(res.body.indemnization).toEqual(expectedIndemnization)
+                done()
+            })
+        })
+
+    })
+
     describe('DELETE PCR Request', () => {
 
         it('Insurers can not delete a PCRRequest', done => {
@@ -342,9 +396,7 @@ describe('insurance', function() {
         })
 
         it('Error because insuranceID not exists', done => {
-            let fakeInsuranceId = 'FAKEINSURANCEID'
-
-            request.delete(`/insurance/${fakeInsuranceId}/pcrRequests/${pcrRequestData.id}`)
+            request.delete(`/insurance/${FAKEINSURANCEID}/pcrRequests/${pcrRequestData.id}`)
             .set('Accept', 'application/json')
             .set('Authorization', 'Bearer ' + takerBearerToken)
             .expect('Content-Type', /json/)
@@ -352,9 +404,7 @@ describe('insurance', function() {
         })
 
         it('Error because pcrRequestId not exists', done => {
-            let fakePcrRequestId = 'FAKEPCRREQUESTID'
-            
-            request.delete(`/insurance/${insuranceData.id}/pcrRequests/${fakePcrRequestId}`)
+            request.delete(`/insurance/${insuranceData.id}/pcrRequests/${FAKEPCRREQUESTID}`)
             .set('Accept', 'application/json')
             .set('Authorization', 'Bearer ' + takerBearerToken)
             .expect('Content-Type', /json/)
@@ -362,7 +412,6 @@ describe('insurance', function() {
         })
 
         it('Takers can delete a PCRRequest', async done => {
-
             await request.delete(`/insurance/${insuranceData.id}/pcrRequests/${pcrRequestData.id}`)
             .set('Accept', 'application/json')
             .set('Authorization', 'Bearer ' + takerBearerToken)

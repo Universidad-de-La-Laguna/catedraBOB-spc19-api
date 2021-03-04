@@ -156,16 +156,10 @@ paths:
       schema:
         $ref: '#/components/schemas/InsuranceId'
     post:
-      summary: order payment for insurance policy
-      description: Order the payment to customer for accomplishment of blockchain
+      summary: check payment for insurance
+      description: Check the payment to customer for accomplishment of blockchain
         contract
-      operationId: orderPayment
-      requestBody:
-        description: Order payment detail
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/OrderPaymentItem'
+      operationId: checkPayment
       responses:
         "200":
           description: payment processed
@@ -361,17 +355,6 @@ components:
       properties:
         result:
           $ref: '#/components/schemas/PcrResult'
-    OrderPaymentItem:
-      required:
-      - insurance
-      - payment
-      type: object
-      properties:
-        insurance:
-          $ref: '#/components/schemas/InsuranceItem'
-        payment:
-          type: number
-          example: 1000
   responses:
     InvalidInputError:
       description: Invalid input, object invalid
