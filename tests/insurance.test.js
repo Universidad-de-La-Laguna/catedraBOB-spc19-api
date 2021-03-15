@@ -76,11 +76,11 @@ describe('insurance', function() {
 
     describe('POST', function(){
 
-        it('Takers can not create insurances', done => {
+        it('Insurers can not create insurances', done => {
             request.post('/insurances')
             .send(insuranceData)
             .set('Accept', 'application/json')
-            .set('Authorization', 'Bearer ' + takerBearerToken)
+            .set('Authorization', 'Bearer ' + insurerBearerToken)
             .expect(403, done)
         })
 
@@ -92,11 +92,11 @@ describe('insurance', function() {
             .expect(403, done)
         })
 
-        it('Insurers can create insurances', done => {
+        it('Takers can create insurances', done => {
             request.post('/insurances')
             .send(insuranceData)
             .set('Accept', 'application/json')
-            .set('Authorization', 'Bearer ' + insurerBearerToken)
+            .set('Authorization', 'Bearer ' + takerBearerToken)
             .expect('Content-Type', /json/)
             .expect(201, done)
         })
@@ -108,7 +108,7 @@ describe('insurance', function() {
             request.post('/insurances')
             .send(fakeInsuranceData)
             .set('Accept', 'application/json')
-            .set('Authorization', 'Bearer ' + insurerBearerToken)
+            .set('Authorization', 'Bearer ' + takerBearerToken)
             .expect('Content-Type', /json/)
             .expect(400, done);
         })
@@ -116,7 +116,7 @@ describe('insurance', function() {
         it('Should return 415 by no body content', done => {
             request.post('/insurances')
             .set('Accept', 'application/json')
-            .set('Authorization', 'Bearer ' + insurerBearerToken)
+            .set('Authorization', 'Bearer ' + takerBearerToken)
             .expect('Content-Type', /json/)
             .expect(415, done);
         })
@@ -125,7 +125,7 @@ describe('insurance', function() {
             request.post('/insurances')
             .send(insuranceData)
             .set('Accept', 'application/json')
-            .set('Authorization', 'Bearer ' + insurerBearerToken)
+            .set('Authorization', 'Bearer ' + takerBearerToken)
             .expect('Content-Type', /json/)
             .expect(409, done)
         })
@@ -141,7 +141,7 @@ describe('insurance', function() {
             request.post('/insurances')
             .send(fakeInsuranceData)
             .set('Accept', 'application/json')
-            .set('Authorization', 'Bearer ' + insurerBearerToken)
+            .set('Authorization', 'Bearer ' + takerBearerToken)
             .expect(400, done)
         })
 

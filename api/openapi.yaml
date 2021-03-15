@@ -371,8 +371,6 @@ components:
       x-acl-config:
         insurer:
           "insurances":
-            "create:any":
-              - "*"
             "read:any":
               - "*"
           "insurance/checkPayment":
@@ -380,6 +378,8 @@ components:
               - "*"
         taker:
           "insurances":
+            "create:any":
+              - "*"
             "read:any":
               - "*"
           "insurance/pcrRequests":
