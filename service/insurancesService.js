@@ -4,19 +4,19 @@ const fs = require('fs-extra');
 const Web3 = require('web3');
 const Web3Utils = require('web3-utils');
 const EEAClient = require('web3-eea');
-const { deseriality, multipleDeseriality } = require('../src/deseriality');
+const { deseriality, multipleDeseriality } = require('../scripts/deseriality');
 
-const { orion, besu } = require('./keys.js');
+const { orion, besu } = require('../scripts/keys.js');
 const chainId = 2018;
 // Datos de la "base de datos"
-const data = JSON.parse(fs.readFileSync('./data.json'));
+const data = JSON.parse(fs.readFileSync('../data/data.json'));
 
 // Guarda la información de las pólizas y las direcciones de sus contratos en los distintos nodos
 const insuranceIdsToHotelData = data.insuranceIdsToHotelData;
 // Guarda la información de las PCRs y las direcciones de sus contratos en los distintos nodos
 const pcrIdsToAddress = data.pcrIdsToAddress;
 // Guarda la dirección del contrato general para cada nodo
-const hotelData = JSON.parse(fs.readFileSync('./spc19address.json'));
+const hotelData = JSON.parse(fs.readFileSync('../data/spc19address.json'));
 
 const takerIdToSpc19addresses = hotelData.takerIdToSpc19addresses;
 const takerIdToPublicKey = hotelData.takerIdToPublicKey;
@@ -372,7 +372,7 @@ exports.addInsurancePolicy = function (body) {
       // TODO
       // Añadir el evento de checkpayment y el de positive PCR para mutua y hotel
       fs.writeFileSync(
-        'data.json',
+        '../data/data.json',
         JSON.stringify({
           insuranceIdsToHotelData,
           pcrIdsToAddress,
@@ -516,7 +516,7 @@ exports.addPcrRequest = function (body, insuranceId) {
       })
       .then((res) => {
         fs.writeFile(
-          'data.json',
+          '../data/data.json',
           JSON.stringify({
             insuranceIdsToHotelData,
             pcrIdsToAddress,
