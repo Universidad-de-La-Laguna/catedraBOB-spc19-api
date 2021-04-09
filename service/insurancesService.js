@@ -372,7 +372,7 @@ exports.addInsurancePolicy = function (body) {
       // TODO
       // Añadir el evento de checkpayment y el de positive PCR para mutua y hotel
       fs.writeFileSync(
-        '../data/data.json',
+        '../catedraBOB-spc19-api/data/data.json',
         JSON.stringify({
           insuranceIdsToHotelData,
           pcrIdsToAddress,

@@ -53,7 +53,7 @@ async function getContractAddress(transactionHash) {
  * @param {String} hotelPublicKey 
  * @param {String} hotelId
  */
-async function deployGeneralContracts(hotelPublicKey, hotelId) {
+exports.deployGeneralContracts = async function (hotelPublicKey, hotelId) {
   let spcHotelContract = await createSPC19Contract(hotelPublicKey);
   hotelData.takerIdToSpc19addresses[hotelId] = await getContractAddress(spcHotelContract);
   hotelData.takerIdToPublicKey[hotelId] = hotelPublicKey;
@@ -62,4 +62,4 @@ async function deployGeneralContracts(hotelPublicKey, hotelId) {
   });
 }
 
-deployGeneralContracts(orion.member2.publicKey, hotelId1);
+exports.deployGeneralContracts(orion.member2.publicKey, hotelId1);
