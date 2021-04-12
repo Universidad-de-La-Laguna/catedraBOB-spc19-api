@@ -246,7 +246,6 @@ async function getInsuranceAddressByInsuranceId(insuranceId) {
     transactionHash,
     config.orion.taker.publicKey
   );
-  console.log(result);
   let resultData = await web3.eth.abi.decodeParameters(
     funcAbi.outputs,
     result.output
