@@ -58,6 +58,13 @@ async function createContract(bytecode, privFrom, privKey, privFor) {
   };
   console.log('Creating contract...');
   const c = await web3.eea.sendRawTransaction(contractOptions);
+  let hash = await web3.priv.getTransactionReceipt(
+    c,
+    config.orion.taker.publicKey
+  );
+  if (hash.revertReason) {
+    console.log(Web3Utils.toAscii(hash.revertReason), '//////////////////////////////////////////')
+  }
   return c;
 }
 
@@ -100,17 +107,17 @@ async function getContractAddress(transactionHash, pubKey) {
  */
 function insuranceDataObjectToArray(body) {
   const hotelData = [
-    taker.takerNif,
-    taker.takerFullName,
-    taker.takerContactTown,
-    taker.takerContactLocation,
-    taker.takerContactTelephone,
-    taker.takerContactMobile,
-    taker.takerIBAN,
+    body.taker.takerNif,
+    body.taker.takerFullName,
+    body.taker.takerContactTown,
+    body.taker.takerContactLocation,
+    body.taker.takerContactTelephone,
+    body.taker.takerContactMobile,
+    body.taker.takerIBAN,
   ].map((x) => Web3Utils.fromAscii(x));
   const insurancePrevPcrHash = [];
   const insurancePrevPcrDate = [];
-  const ids = [body.id, taker.takerId];
+  const ids = [body.id, body.taker.takerId];
   const insuredIds = [];
   const startFinishDate = [body.startDate, body.finishDate].map(
     (x) => parseInt(new Date(x).getTime() / 1000)
@@ -239,6 +246,7 @@ async function getInsuranceAddressByInsuranceId(insuranceId) {
     transactionHash,
     config.orion.taker.publicKey
   );
+  console.log(result);
   let resultData = await web3.eth.abi.decodeParameters(
     funcAbi.outputs,
     result.output
@@ -305,7 +313,7 @@ async function getDataPCR(body, insuranceId, pcrRequestId) {
     data: funcData,
     privateFrom: privateFrom,
     privateFor: privateFor,
-    privateKey: besu.thisnode.privateKey,
+    privateKey: config.besu.thisnode.privateKey,
   };
   let transactionHash = await web3.eea.sendRawTransaction(functionParams);
   console.log(`Transaction hash: ${transactionHash}`);
@@ -413,7 +421,7 @@ async function deletePCR(contractaddress) {
 
 /**
  * Función que obtiene los datos de las pólizas de un determinado hotel
- * @param {Object} body {publicKey, privateKey, nodeUrl}
+ * @param {Object} body
  * @returns
  */
 async function getAllInsurancePolicyHotel(body) {
@@ -423,7 +431,7 @@ async function getAllInsurancePolicyHotel(body) {
     data: funcAbi.signature,
     privateFrom: config.orion.taker.publicKey,
     privateFor: [mutuaPublicKey],
-    privateKey: besu.thisnode.privateKey,
+    privateKey: config.besu.thisnode.privateKey,
   };
   let transactionHash = await web3.eea.sendRawTransaction(functionParams);
   console.log(`Transaction hash: ${transactionHash}`);
@@ -431,6 +439,9 @@ async function getAllInsurancePolicyHotel(body) {
     transactionHash,
     config.orion.taker.publicKey
   );
+  if (result.revertReason) {
+    console.log(Web3Utils.toAscii(result.revertReason), '///////////////////////////////////////');
+  }
   let resultData = await web3.eth.abi.decodeParameters(
     funcAbi.outputs,
     result.output
@@ -576,12 +587,12 @@ exports.getPcrRequest = function (body, insuranceId, pcrRequestId) {
   return new Promise(async function (resolve, reject) {
     //TODO
     getDataPCR(body, insuranceId, pcrRequestId)
+      .then((result) => {
+        resolve(result);
+      })
       .catch((error) => {
         console.log('Obtener datos de PCR ha fallado: ', error);
         reject(error);
-      })
-      .then((result) => {
-        resolve(result);
       });
   });
 };

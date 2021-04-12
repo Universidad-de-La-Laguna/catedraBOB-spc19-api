@@ -120,6 +120,7 @@ const deseriality = (data, newOffset) => {
 };
 
 const multipleDeseriality = (data) => {
+  if (!data) return ([]);
   const insurances = [];
   let offset = { offset: 0 };
   while ((offset.offset * -1) < data.length - 2) {
