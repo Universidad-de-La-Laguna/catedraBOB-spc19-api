@@ -14,6 +14,7 @@ const laboratoryBearerToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIx
 const NEGATIVEPCRHOURSDIFF = 80
 const FAKEINSURANCEID = "FAKEINSURANCEID"
 const FAKEPCRREQUESTID = "FAKEPCRREQUESTID"
+const PCRREQUEST_EXAMPLECONTRACTADDRESS = "0x0472ec0185ebb8202f3d4ddb0226998889663cf2"
 
 // Usar versión mockeada del servicio. Si se quiere usar versión real, basta con comentar la línea correspondiente.
 // Las versiones mockeadas usan una persistencia con MongoDB en lugar de blockchain
@@ -287,14 +288,14 @@ describe('insurance', function() {
 
     describe('PATCH PCR Request', () => {
         it('Insurers can not update a PCRRequest', done => {
-            request.patch(`/insurance/${insuranceData.id}/pcrRequests/${pcrRequestData.id}`)
+            request.patch(`/insurance/${insuranceData.id}/pcrRequests/${pcrRequestData.id}?contractaddress=${PCRREQUEST_EXAMPLECONTRACTADDRESS}`)
             .set('Accept', 'application/json')
             .set('Authorization', 'Bearer ' + insurerBearerToken)
             .expect(403, done)
         })
 
         it('Takers can not update a PCRRequest', done => {
-            request.patch(`/insurance/${insuranceData.id}/pcrRequests/${pcrRequestData.id}`)
+            request.patch(`/insurance/${insuranceData.id}/pcrRequests/${pcrRequestData.id}?contractaddress=${PCRREQUEST_EXAMPLECONTRACTADDRESS}`)
             .set('Accept', 'application/json')
             .set('Authorization', 'Bearer ' + takerBearerToken)
             .expect(403, done)
@@ -305,7 +306,7 @@ describe('insurance', function() {
                 result: "POSITIVE"
             }
 
-            await request.patch(`/insurance/${insuranceData.id}/pcrRequests/${pcrRequestData.id}`)
+            await request.patch(`/insurance/${insuranceData.id}/pcrRequests/${pcrRequestData.id}?contractaddress=${PCRREQUEST_EXAMPLECONTRACTADDRESS}`)
             .send(pcrRequestResult)
             .set('Accept', 'application/json')
             .set('Authorization', 'Bearer ' + laboratoryBearerToken)

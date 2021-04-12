@@ -562,9 +562,10 @@ exports.getPcrRequest = function (body, insuranceId, pcrRequestId) {
  * body String  (optional)
  * insuranceId InsuranceId
  * pcrRequestId PcrId
+ * pcrRequestContractAddress contract address for PCRRequestId
  * no response value expected for this operation
  **/
-exports.setResultPcrRequest = function (body, insuranceId, pcrRequestId) {
+exports.setResultPcrRequest = function (body, insuranceId, pcrRequestId, pcrRequestContractAddress) {
   return new Promise(async function (resolve, reject) {
     //TODO
     const resultDate = parseInt(new Date().getTime() / 1000);

@@ -119,7 +119,7 @@ exports.getPcrRequest = function(insuranceId, pcrRequestId) {
  * pcrRequestId PcrId 
  * no response value expected for this operation
  **/
-exports.setResultPcrRequest = function(body, insuranceId, pcrRequestId) {
+exports.setResultPcrRequest = function(body, insuranceId, pcrRequestId, pcrRequestContractAddress) {
   return new Promise(async function(resolve, reject) {
     let insurance = await insurerModel.find({ id: insuranceId })
     if (insurance.length !== 1)

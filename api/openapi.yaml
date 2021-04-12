@@ -119,6 +119,12 @@ paths:
       summary: set result of an PCR test
       description: Laboratory set the PCR Request Result
       operationId: setResultPcrRequest
+      parameters: 
+      - name: contractaddress
+        in: query
+        required: true
+        schema:
+          type: string
       requestBody:
         content:
           application/json:

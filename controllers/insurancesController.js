@@ -51,7 +51,7 @@ module.exports.getPcrRequest = function getPcrRequest (req, res, next) {
 }
 
 module.exports.setResultPcrRequest = function setResultPcrRequest (req, res, next) {
-  insuranceService.setResultPcrRequest(req.body, req.params.insuranceId, req.params.pcrRequestId)
+  insuranceService.setResultPcrRequest(req.body, req.params.insuranceId, req.params.pcrRequestId, req.query.contractaddress)
     .then(function (response) {
       utils.writeJson(res, response)
     })
