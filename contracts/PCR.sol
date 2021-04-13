@@ -34,8 +34,9 @@ contract PCR {
         bytes32 _id, 
         bytes32 _insuranceId,
         bytes32 _insuredId,
-        uint256 _requestDate) {
-            pcrData.insuredId = _insuredId;
+        uint256 _requestDate
+    ) {
+        pcrData.insuredId = _insuredId;
         pcrData.insuranceId = _insuranceId;
         pcrData.id = _id;
         owner = payable(msg.sender);
@@ -43,7 +44,6 @@ contract PCR {
         pcrData.requestDate = _requestDate;
         pcrData.result = "UNDEFINED";
         deleted = false;
-        
     }
 
     /// @notice Update de pcr result state from the laboratory.
@@ -62,9 +62,10 @@ contract PCR {
         uint256 requestDate, 
         uint256 resultDate, 
         bytes32 id,
+        address pcrContractAddress,
         bytes32 insuranceId
     ) {
-        return (pcrData.result, pcrData.insuredId, pcrData.requestDate, pcrData.resultDate, pcrData.id, pcrData.insuranceId);
+        return (pcrData.result, pcrData.insuredId, pcrData.requestDate, pcrData.resultDate, pcrData.id, address(this),pcrData.insuranceId);
     }
 
     /// @notice Returns only the PCR id.

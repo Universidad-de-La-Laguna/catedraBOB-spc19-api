@@ -15,20 +15,20 @@
     "version": 1
   },
   "evm": {
-    "assembly": "    /* \"Insurance.sol\":226:1988  contract Seriality {... */\n  mstore(0x40, 0x80)\n    /* \"Insurance.sol\":252:270  constructor () { } */\n  callvalue\n  dup1\n  iszero\n  tag_1\n  jumpi\n  0x00\n  dup1\n  revert\ntag_1:\n  pop\n    /* \"Insurance.sol\":226:1988  contract Seriality {... */\n  dataSize(sub_0)\n  dup1\n  dataOffset(sub_0)\n  0x00\n  codecopy\n  0x00\n  return\nstop\n\nsub_0: assembly {\n        /* \"Insurance.sol\":226:1988  contract Seriality {... */\n      mstore(0x40, 0x80)\n      0x00\n      dup1\n      revert\n\n    auxdata: 0xa2646970667358221220d942e5a7394255f25dc5d2e6a1d812d9f80657d2748e9400c10eaf50fe794e5d64736f6c63430008030033\n}\n",
+    "assembly": "    /* \"Insurance.sol\":226:1988  contract Seriality {... */\n  mstore(0x40, 0x80)\n    /* \"Insurance.sol\":252:270  constructor () { } */\n  callvalue\n  dup1\n  iszero\n  tag_1\n  jumpi\n  0x00\n  dup1\n  revert\ntag_1:\n  pop\n    /* \"Insurance.sol\":226:1988  contract Seriality {... */\n  dataSize(sub_0)\n  dup1\n  dataOffset(sub_0)\n  0x00\n  codecopy\n  0x00\n  return\nstop\n\nsub_0: assembly {\n        /* \"Insurance.sol\":226:1988  contract Seriality {... */\n      mstore(0x40, 0x80)\n      0x00\n      dup1\n      revert\n\n    auxdata: 0xa2646970667358221220c29a29a5a13b7edc4188460448ec03430e961bfe6c9573e2d7c88ec0d6717cfa64736f6c63430008030033\n}\n",
     "bytecode": {
       "generatedSources": [],
       "linkReferences": {},
-      "object": "6080604052348015600f57600080fd5b50603f80601d6000396000f3fe6080604052600080fdfea2646970667358221220d942e5a7394255f25dc5d2e6a1d812d9f80657d2748e9400c10eaf50fe794e5d64736f6c63430008030033",
-      "opcodes": "PUSH1 0x80 PUSH1 0x40 MSTORE CALLVALUE DUP1 ISZERO PUSH1 0xF JUMPI PUSH1 0x0 DUP1 REVERT JUMPDEST POP PUSH1 0x3F DUP1 PUSH1 0x1D PUSH1 0x0 CODECOPY PUSH1 0x0 RETURN INVALID PUSH1 0x80 PUSH1 0x40 MSTORE PUSH1 0x0 DUP1 REVERT INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 0xD9 TIMESTAMP 0xE5 0xA7 CODECOPY TIMESTAMP SSTORE CALLCODE 0x5D 0xC5 0xD2 0xE6 LOG1 0xD8 SLT 0xD9 0xF8 MOD JUMPI 0xD2 PUSH21 0x8E9400C10EAF50FE794E5D64736F6C634300080300 CALLER ",
+      "object": "6080604052348015600f57600080fd5b50603f80601d6000396000f3fe6080604052600080fdfea2646970667358221220c29a29a5a13b7edc4188460448ec03430e961bfe6c9573e2d7c88ec0d6717cfa64736f6c63430008030033",
+      "opcodes": "PUSH1 0x80 PUSH1 0x40 MSTORE CALLVALUE DUP1 ISZERO PUSH1 0xF JUMPI PUSH1 0x0 DUP1 REVERT JUMPDEST POP PUSH1 0x3F DUP1 PUSH1 0x1D PUSH1 0x0 CODECOPY PUSH1 0x0 RETURN INVALID PUSH1 0x80 PUSH1 0x40 MSTORE PUSH1 0x0 DUP1 REVERT INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 0xC2 SWAP11 0x29 0xA5 LOG1 EXTCODESIZE PUSH31 0xDC4188460448EC03430E961BFE6C9573E2D7C88EC0D6717CFA64736F6C6343 STOP ADDMOD SUB STOP CALLER ",
       "sourceMap": "226:1762:0:-:0;;;252:18;;;;;;;;;;226:1762;;;;;;"
     },
     "deployedBytecode": {
       "generatedSources": [],
       "immutableReferences": {},
       "linkReferences": {},
-      "object": "6080604052600080fdfea2646970667358221220d942e5a7394255f25dc5d2e6a1d812d9f80657d2748e9400c10eaf50fe794e5d64736f6c63430008030033",
-      "opcodes": "PUSH1 0x80 PUSH1 0x40 MSTORE PUSH1 0x0 DUP1 REVERT INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 0xD9 TIMESTAMP 0xE5 0xA7 CODECOPY TIMESTAMP SSTORE CALLCODE 0x5D 0xC5 0xD2 0xE6 LOG1 0xD8 SLT 0xD9 0xF8 MOD JUMPI 0xD2 PUSH21 0x8E9400C10EAF50FE794E5D64736F6C634300080300 CALLER ",
+      "object": "6080604052600080fdfea2646970667358221220c29a29a5a13b7edc4188460448ec03430e961bfe6c9573e2d7c88ec0d6717cfa64736f6c63430008030033",
+      "opcodes": "PUSH1 0x80 PUSH1 0x40 MSTORE PUSH1 0x0 DUP1 REVERT INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 0xC2 SWAP11 0x29 0xA5 LOG1 EXTCODESIZE PUSH31 0xDC4188460448EC03430E961BFE6C9573E2D7C88EC0D6717CFA64736F6C6343 STOP ADDMOD SUB STOP CALLER ",
       "sourceMap": "226:1762:0:-:0;;;;;"
     },
     "gasEstimates": {
@@ -188,7 +188,7 @@
       ],
       ".data": {
         "0": {
-          ".auxdata": "a2646970667358221220d942e5a7394255f25dc5d2e6a1d812d9f80657d2748e9400c10eaf50fe794e5d64736f6c63430008030033",
+          ".auxdata": "a2646970667358221220c29a29a5a13b7edc4188460448ec03430e961bfe6c9573e2d7c88ec0d6717cfa64736f6c63430008030033",
           ".code": [
             {
               "begin": 226,
@@ -238,7 +238,7 @@
   "ewasm": {
     "wasm": ""
   },
-  "metadata": "{\"compiler\":{\"version\":\"0.8.3+commit.8d00100c\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"}],\"devdoc\":{\"author\":\"pouladzade@gmail.com\",\"details\":\"The Seriality contract is the main interface for serializing data using the TypeToBytes, BytesToType and SizeOf\",\"kind\":\"dev\",\"methods\":{},\"title\":\"Seriality\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"Insurance.sol\":\"Seriality\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"Insurance.sol\":{\"keccak256\":\"0xd9d91592421ddfb0b6f6f02eb2ac88fb3a659bc358bfb52fa00169662a1eee7c\",\"urls\":[\"bzz-raw://297eb0a0649f293a8228d51961555c16d026726c2446a004f830d3bfdb917865\",\"dweb:/ipfs/QmdutdH1zncVT65TM2W4oC2hfqY7w95QWKmM2BnFmo6V9v\"]},\"PCR.sol\":{\"keccak256\":\"0xd3762f6b9d8dec32cd1747b9ab8795357e6a97f90dd5871e511e0821846f8221\",\"urls\":[\"bzz-raw://5098eade44d2c80f0e6e8ee87833260108c1a0146eeb2925303f49eab898b4b5\",\"dweb:/ipfs/QmTGgKnT21bEKfgTHZa8KsAQQG21c6oU5uzD2o14jJPqSG\"]}},\"version\":1}",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.3+commit.8d00100c\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"}],\"devdoc\":{\"author\":\"pouladzade@gmail.com\",\"details\":\"The Seriality contract is the main interface for serializing data using the TypeToBytes, BytesToType and SizeOf\",\"kind\":\"dev\",\"methods\":{},\"title\":\"Seriality\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"Insurance.sol\":\"Seriality\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"Insurance.sol\":{\"keccak256\":\"0x6d6e65dbaaaff4ea735ea6ca172cdd7408ea577031780f2eb5ad45332b611baa\",\"urls\":[\"bzz-raw://a8a270b877dc214453b3b4baf2088e4c0427e6c6aa40e3ee8c162b52d0532348\",\"dweb:/ipfs/Qmd9ECMw2jA6ZwR2Aghj78ZLqPw4rDztc7q6RTJUGXf6r1\"]},\"PCR.sol\":{\"keccak256\":\"0x895545a0c83a00c1f9e57062e91c849bfbc3a7310c8a2457b4694c840a39ff5b\",\"urls\":[\"bzz-raw://a57fdf1f40609a3830e73f4312e2f2d1f9428e9d5d8a608764f961af6c75237a\",\"dweb:/ipfs/QmfYH5UHbTDHTBL8ftAZSpVm5y6mkkEoYUrCkwA7GHxfTS\"]}},\"version\":1}",
   "storageLayout": {
     "storage": [],
     "types": null

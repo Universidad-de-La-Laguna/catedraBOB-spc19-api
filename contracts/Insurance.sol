@@ -83,6 +83,7 @@ contract Insurance is Seriality {
         bytes32 id;
         uint256 insuranceStartDate;
         uint256 insuranceFinishDate;
+        uint256 contractDate;
         bytes32[] insureds;
     }
     
@@ -108,6 +109,7 @@ contract Insurance is Seriality {
         bytes32 insuredId;
         uint256 requestDate;
         uint256 resultDate;
+        address contractAddress;
     }
 
     //  Security variables to verify that the contract can only be accessed by the owner or another contract that contains this one.
@@ -119,7 +121,7 @@ contract Insurance is Seriality {
     mapping(bytes32 => uint256) private pcrLocation;
     mapping(bytes32 => bytes32[]) private insuredPCRs;
     mapping(bytes32 => bool) private insuredInInsurance;
-    mapping(bytes32 => bool) private isPcrDeleted;
+    mapping(bytes32 => bool) private isPcrActive;
     mapping(bytes32 => bytes32) private pcrIdToInsuredId;
     mapping(bytes32 => bytes32) private insuredNegPcrHash;
     mapping(bytes32 => uint256) private insuredNegPcrDate;
@@ -165,10 +167,11 @@ contract Insurance is Seriality {
         require(_dailyCompensationAndDuration.length == 2, "You have to provide the amount of day compensation and the number of days.");
         insuranceData.dailyCompensation = _dailyCompensationAndDuration[0];
         insuranceData.daysToCompensate = _dailyCompensationAndDuration[1];
-        require(_insuranceStartFinishDate.length == 2, "The Policy need a start date and a finish date.");
+        require(_insuranceStartFinishDate.length == 3, "The Policy need a start date, a finish date and a contract date.");
         require(_insuranceStartFinishDate[0] < _insuranceStartFinishDate[1], "The start date has to be before the finish date.");
         insuranceData.insuranceStartDate = _insuranceStartFinishDate[0]; 
         insuranceData.insuranceFinishDate = _insuranceStartFinishDate[1];
+        insuranceData.contractDate = _insuranceStartFinishDate[2];
         insuranceData.insureds = _insureds;
 
         require(_ids.length == 2, "Must provide Policy ID and Taker ID.");
@@ -210,9 +213,11 @@ contract Insurance is Seriality {
     function addPCRtoInsured(
         bytes32 _insuredId,
         bytes32 _idPcr,
-        uint256 _requestDate
+        uint256 _requestDate,
+        address _contractAddress
         ) public {
         require(insuredInInsurance[_insuredId], "The id of the insured is not in the policy.");
+        require(!isPcrActive[_idPcr], "Ya existe una PCR con ese ID");
         insuredPCRs[_insuredId].push(_idPcr);
         pcrLocation[_idPcr] = insuredPCRs[_insuredId].length;
         pcrIdToInsuredId[_idPcr] = _insuredId;
@@ -221,9 +226,10 @@ contract Insurance is Seriality {
             id: _idPcr, 
             insuredId: _insuredId,
             requestDate: _requestDate,
-            resultDate: 0
+            resultDate: 0,
+            contractAddress: _contractAddress
         });
-        isPcrDeleted[_idPcr] = false;
+        isPcrActive[_idPcr] = true;
         insuranceData.pcrNumber++;
     }
 
@@ -233,6 +239,7 @@ contract Insurance is Seriality {
         // require(pcrIdToInsuredId[_idPCR] != 0, "PCR has to be linked to an insured identifier.");
         bytes32 posPCR = "POSITIVE";
         bytes32 insuredId = pcrIdToInsuredId[_idPCR];
+        require(isPcrActive[_idPCR], "La PCR tiene que existir");
         pcrIdToData[insuredPCRs[insuredId][pcrLocation[_idPCR]]].result = _resultPCR;
         pcrIdToData[insuredPCRs[insuredId][pcrLocation[_idPCR]]].resultDate = block.timestamp;
         if (_resultPCR == posPCR) {
@@ -246,14 +253,16 @@ contract Insurance is Seriality {
 
     /// @notice Deletes a pcr already requested by an insured.
     /// @dev Updates the state of the PCR selected.
-    function deletePCR(bytes32 _idPCR) public {
+    function deletePCR(bytes32 _idPCR) public returns(address _pcrContractAddress) {
         // require(pcrIdToInsuredId[_idPCR] != 0, "PCR has to be linked to an insured identifier.");
-        isPcrDeleted[_idPCR] = true;
+        require(isPcrActive[_idPCR], "No existe una PCR con esa ID");
+        address contractAddress = pcrIdToData[_idPCR].contractAddress;
+        isPcrActive[_idPCR] = false;
         delete pcrIdToData[_idPCR];
         delete pcrLocation[_idPCR];
         delete pcrIdToInsuredId[_idPCR];
         insuranceData.pcrNumber--;
-        return;
+        return contractAddress;
     }
 
     /// @notice Returns the information of a PCR.
@@ -262,7 +271,8 @@ contract Insurance is Seriality {
         bytes32 customerId, 
         uint256 requestDate,
         uint256 resultDate, 
-        bytes32 id
+        bytes32 id,
+        address pcrContractAddress
     ) {
         // require(pcrIdToInsuredId[_idPCR] != 0, "PCR has to be linked to an insured identifier.");
         return (
@@ -270,7 +280,8 @@ contract Insurance is Seriality {
             pcrIdToData[_idPCR].insuredId,
             pcrIdToData[_idPCR].requestDate,
             pcrIdToData[_idPCR].resultDate,
-            pcrIdToData[_idPCR].id
+            pcrIdToData[_idPCR].id,
+            pcrIdToData[_idPCR].contractAddress
             );
     }
 
@@ -344,7 +355,7 @@ contract Insurance is Seriality {
             96 + // 2 uint256 and 1 bytes32 Insurance Info
             (32 * insuranceData.insuredNumber) +  // ids of insureds
             (32 * insuranceData.insuredNumber * 2) + // negative previous PCR hash and date 
-            (32 * 8) + //bytes32 of takerData
+            (32 * 9) + //bytes32 of takerData
             nameSize + addressSize + emailSize +
             10 + // uints16 to check string sizes (3) and to check insuredNumber (1) and to check number of PCRs (1)
             2 + // 2 bools
@@ -365,6 +376,10 @@ contract Insurance is Seriality {
 
         // serialize Insurance Finish Date
         uintToBytes(offset, insuranceData.insuranceFinishDate, _serializedInsurance);
+        offset -= 32;
+
+        // serialize Contract Date
+        uintToBytes(offset, insuranceData.contractDate, _serializedInsurance);
         offset -= 32;
 
         // serialize Daily Compensation
@@ -472,10 +487,10 @@ contract Insurance is Seriality {
         // Get all PCR data
         for (uint256 i = 0; i < insuranceData.insuredNumber; i++) {
             for (uint256 j = 0; j < insuredPCRs[insuranceData.insureds[i]].length; j++) {
-                if (isPcrDeleted[insuredPCRs[insuranceData.insureds[i]][j]]) {
+                if (!isPcrActive[insuredPCRs[insuranceData.insureds[i]][j]]) {
                     continue;
                 }
-                (resultPcr, insuredIdPcr, requestDatePcr, resultDatePcr, idPcr) = getPCR(insuredPCRs[insuranceData.insureds[i]][j]);
+                (resultPcr, insuredIdPcr, requestDatePcr, resultDatePcr, idPcr,) = getPCR(insuredPCRs[insuranceData.insureds[i]][j]);
                 // serialize PCR ID
                 bytes32ToBytes(offset, idPcr, _serializedInsurance);
                 offset -= 32;

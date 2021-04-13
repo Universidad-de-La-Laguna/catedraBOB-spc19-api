@@ -63,7 +63,10 @@ async function createContract(bytecode, privFrom, privKey, privFor) {
     config.orion.taker.publicKey
   );
   if (hash.revertReason) {
-    console.log(Web3Utils.toAscii(hash.revertReason), '//////////////////////////////////////////')
+    console.log(
+      Web3Utils.toAscii(hash.revertReason),
+      '//////////////////////////////////////////'
+    );
   }
   return c;
 }
@@ -117,14 +120,16 @@ function insuranceDataObjectToArray(body) {
   ].map((x) => Web3Utils.fromAscii(x));
   const insurancePrevPcrHash = [];
   const insurancePrevPcrDate = [];
-  const ids = [body.id, body.taker.takerId];
+  const ids = [body.id, body.taker.takerId].map((x) => Web3Utils.fromAscii(x));
   const insuredIds = [];
-  const startFinishDate = [body.startDate, body.finishDate].map(
-    (x) => parseInt(new Date(x).getTime() / 1000)
-  ); // Caso de objeto Date
+  const startFinishDate = [
+    body.startDate,
+    body.finishDate,
+    body.contractDate,
+  ].map((x) => parseInt(new Date(x).getTime() / 1000));
   const pcrIdCustomerIdPairs = [];
   for (const customer of body.customers) {
-    insuredIds.push(customer.customerId);
+    insuredIds.push(Web3Utils.fromAscii(customer.customerId));
     insurancePrevPcrHash.push(customer.negativePcrHash);
     insurancePrevPcrDate.push(
       parseInt(new Date(customer.negativePcrDate).getTime() / 1000)
@@ -204,9 +209,9 @@ async function createPCR(body, insuranceId, requestDate) {
   let constrAbi = PCRAbi[0];
   let constructorArguments = web3.eth.abi
     .encodeParameters(constrAbi.inputs, [
-      body.id,
-      insuranceId,
-      body.customerId,
+      Web3Utils.fromAscii(body.id),
+      Web3Utils.fromAscii(insuranceId),
+      Web3Utils.fromAscii(body.customerId),
       requestDate,
     ])
     .slice(2);
@@ -231,7 +236,7 @@ async function createPCR(body, insuranceId, requestDate) {
 async function getInsuranceAddressByInsuranceId(insuranceId) {
   let funcAbi = await getFunctionAbi(Spc19Abi, 'getAddressOfInsurance');
   let funcArguments = web3.eth.abi
-    .encodeParameters(funcAbi.inputs, [insuranceId])
+    .encodeParameters(funcAbi.inputs, [Web3Utils.fromAscii(insuranceId)])
     .slice(2);
   let functionParams = {
     to: config.contracts.spc19ContractAddress,
@@ -261,10 +266,21 @@ async function getInsuranceAddressByInsuranceId(insuranceId) {
  * @param {Number} requestDate
  * @returns Hash of the transaction
  */
-async function addPCR(body, insuranceAddress, requestDate) {
+async function addPCR(body, insuranceAddress, requestDate, pcrAddress) {
   let funcAbi = await getFunctionAbi(insuranceAbi, 'addPCRtoInsured');
+  console.log([
+    Web3Utils.fromAscii(body.customerId),
+    Web3Utils.fromAscii(body.id),
+    requestDate,
+    pcrAddress,
+  ], "/////////////////////////////////////")
   let funcArguments = web3.eth.abi
-    .encodeParameters(funcAbi.inputs, [body.customerId, body.id, requestDate])
+    .encodeParameters(funcAbi.inputs, [
+      Web3Utils.fromAscii(body.customerId),
+      Web3Utils.fromAscii(body.id),
+      requestDate,
+      pcrAddress,
+    ])
     .slice(2);
   let functionParams = {
     to: insuranceAddress,
@@ -290,12 +306,17 @@ async function addPCR(body, insuranceAddress, requestDate) {
  * @returns
  */
 async function getDataPCR(body, insuranceId, pcrRequestId) {
-  let funcAbi, funcArguments, funcData, contractAddress, privateFor, privateFrom;
+  let funcAbi,
+    funcArguments,
+    funcData,
+    contractAddress,
+    privateFor,
+    privateFrom;
   if (config.orion.taker.publicKey != labPublicKey) {
     privateFrom = config.orion.taker.publicKey;
     funcAbi = await getFunctionAbi(insuranceAbi, 'getPCR');
     funcArguments = web3.eth.abi
-      .encodeParameters(funcAbi.inputs, [pcrRequestId])
+      .encodeParameters(funcAbi.inputs, [Web3Utils.fromAscii(pcrRequestId)])
       .slice(2);
     contractAddress = await getInsuranceAddressByInsuranceId(insuranceId);
     funcData = funcAbi.signature + funcArguments;
@@ -327,9 +348,10 @@ async function getDataPCR(body, insuranceId, pcrRequestId) {
   let pcrInfo = {
     result: Web3Utils.toUtf8(resultData['0']),
     customerId: resultData['1'],
-    requestDate: parseInt(resultData['2'] * 1000),
-    resultDate: parseInt(resultData['3'] * 1000),
+    requestDate: new Date(parseInt(resultData['2']) * 1000).toISOString(),
+    resultDate: new Date(parseInt(resultData['3']) * 1000).toISOString(),
     id: resultData['4'],
+    address: resultData['5'],
   };
   console.log(pcrInfo);
   return pcrInfo;
@@ -376,7 +398,7 @@ async function updatePCR(body, contractaddress, resultDate) {
 async function deletePCRInsurance(insuranceId, pcrRequestId) {
   let funcAbi = await getFunctionAbi(insuranceAbi, 'deletePCR');
   let funcArguments = web3.eth.abi
-    .encodeParameters(funcAbi.inputs, [pcrRequestId])
+    .encodeParameters(funcAbi.inputs, [Web3Utils.fromAscii(pcrRequestId)])
     .slice(2);
   let insuranceAddress = await getInsuranceAddressByInsuranceId(insuranceId);
   let functionParams = {
@@ -392,7 +414,11 @@ async function deletePCRInsurance(insuranceId, pcrRequestId) {
     transactionHash,
     config.orion.taker.publicKey
   );
-  return result;
+  let resultData = await web3.eth.abi.decodeParameters(
+    funcAbi.outputs,
+    result.output
+  );
+  return resultData[0];
 }
 
 /**
@@ -439,7 +465,10 @@ async function getAllInsurancePolicyHotel(body) {
     config.orion.taker.publicKey
   );
   if (result.revertReason) {
-    console.log(Web3Utils.toAscii(result.revertReason), '///////////////////////////////////////');
+    console.log(
+      Web3Utils.toAscii(result.revertReason),
+      '///////////////////////////////////////'
+    );
   }
   let resultData = await web3.eth.abi.decodeParameters(
     funcAbi.outputs,
@@ -562,7 +591,7 @@ exports.addPcrRequest = function (body, insuranceId) {
       .then((pcrAddress) => {
         getInsuranceAddressByInsuranceId(insuranceId).then(
           (insuranceAddress) => {
-            addPCR(body, insuranceAddress, requestDate).then((res) => {
+            addPCR(body, insuranceAddress, requestDate, pcrAddress).then((res) => {
               resolve();
             });
           }
@@ -632,7 +661,7 @@ exports.setResultPcrRequest = function (
  * pcrRequestId PcrId
  * no response value expected for this operation
  */
-exports.deletePcrRequest = function (contractadress, insuranceId, pcrRequestId) {
+exports.deletePcrRequest = function (insuranceId, pcrRequestId) {
   return new Promise(async function (resolve, reject) {
     //TODO
     deletePCRInsurance(insuranceId, pcrRequestId)
@@ -640,14 +669,17 @@ exports.deletePcrRequest = function (contractadress, insuranceId, pcrRequestId) 
         console.log('Error al borrar PCR en la póliza: ', error);
         reject(error);
       })
-      .then((result) => {
+      .then((contractadress) => {
         deletePCR(contractadress);
       })
       .catch((error) => {
         console.log('Error al borrar PCR en contrato PCR: ', error);
         reject(error);
       })
-      .then(() => resolve());
+      .then(() => {
+        console.log('PCR eliminada con éxito');
+        resolve();
+      });
   });
 };
 

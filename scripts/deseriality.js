@@ -9,20 +9,22 @@ const deseriality = (data, newOffset) => {
     offset = 0;
   }
   if (offset === 0) {
-    insurance['id'] = '0x' + data.slice(offset - 64);
+    insurance['id'] = Web3Utils.toUtf8('0x' + data.slice(offset - 64));
   } else {
-    insurance['id'] = '0x' + data.slice(offset - 64, offset);
+    insurance['id'] = Web3Utils.toUtf8('0x' + data.slice(offset - 64, offset));
   }
   offset -= 64;
-  insurance['startDate'] = parseInt(data.slice(offset - 64, offset), 16);
+  insurance['startDate'] = new Date(parseInt(data.slice(offset - 64, offset), 16) * 1000).toISOString();
   offset -= 64;
-  insurance['finishDate'] = parseInt(data.slice(offset - 64, offset), 16);
+  insurance['finishDate'] = new Date(parseInt(data.slice(offset - 64, offset), 16) * 1000).toISOString();
+  offset -= 64;
+  insurance['contractDate'] = new Date(parseInt(data.slice(offset - 64, offset), 16) * 1000).toISOString();
   offset -= 64;
   insurance['assuredPrice'] = parseInt(data.slice(offset - 4, offset), 16);
   offset -= 4;
   insurance['daysToCompensate'] = parseInt(data.slice(offset - 4, offset), 16);
   offset -= 4;
-  insurance['taker']['takerId'] = '0x' + data.slice(offset - 64, offset);
+  insurance['taker']['takerId'] = Web3Utils.toUtf8('0x' + data.slice(offset - 64, offset));
   offset -= 64;
   insurance['taker']['takerNif'] = Web3Utils.toUtf8(
     '0x' + data.slice(offset - 64, offset)
@@ -83,14 +85,14 @@ const deseriality = (data, newOffset) => {
   insurance['customers'] = [];
   for (let i = 0; i < insuredNumber; i++) {
     let insuredInfo = {};
-    insuredInfo['customerId'] = '0x' + data.slice(offset - 64, offset);
+    insuredInfo['customerId'] = Web3Utils.toUtf8('0x' + data.slice(offset - 64, offset));
     offset -= 64;
     insuredInfo['negativePcrHash'] = '0x' + data.slice(offset - 64, offset);
     offset -= 64;
-    insuredInfo['negativePcrDate'] = parseInt(
+    insuredInfo['negativePcrDate'] = new Date(parseInt(
       data.slice(offset - 64, offset),
       16
-    );
+    )* 1000).toISOString();
     offset -= 64;
     insurance['customers'].push(insuredInfo);
   }
@@ -99,13 +101,13 @@ const deseriality = (data, newOffset) => {
   insurance['pcrRequests'] = [];
   for (let i = 0; i < pcrNumber; i++) {
     let pcrInfo = {};
-    pcrInfo['id'] = '0x' + data.slice(offset - 64, offset);
+    pcrInfo['id'] = Web3Utils.toUtf8('0x' + data.slice(offset - 64, offset));
     offset -= 64;
-    pcrInfo['resultDate'] = parseInt(data.slice(offset - 64, offset), 16);
+    pcrInfo['resultDate'] = new Date(parseInt(data.slice(offset - 64, offset), 16) * 1000).toISOString();
     offset -= 64;
-    pcrInfo['requestDate'] = parseInt(data.slice(offset - 64, offset), 16);
+    pcrInfo['requestDate'] = new Date(parseInt(data.slice(offset - 64, offset), 16) * 1000).toISOString();
     offset -= 64;
-    pcrInfo['customerId'] = '0x' + data.slice(offset - 64, offset);
+    pcrInfo['customerId'] = Web3Utils.toUtf8('0x' + data.slice(offset - 64, offset));
     offset -= 64;
     pcrInfo['result'] = Web3Utils.toUtf8(
       '0x' + data.slice(offset - 64, offset)
