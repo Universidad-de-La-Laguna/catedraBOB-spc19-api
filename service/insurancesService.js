@@ -6,6 +6,7 @@ const Web3Utils = require('web3-utils');
 const EEAClient = require('web3-eea');
 const config = require('../config');
 const { deseriality, multipleDeseriality } = require('../scripts/deseriality');
+const { besu } = require('../config');
 
 const chainId = 2018;
 
@@ -268,15 +269,6 @@ async function getInsuranceAddressByInsuranceId(insuranceId) {
  */
 async function addPCR(body, insuranceAddress, requestDate, pcrAddress) {
   let funcAbi = await getFunctionAbi(insuranceAbi, 'addPCRtoInsured');
-  console.log(
-    [
-      Web3Utils.fromAscii(body.customerId),
-      Web3Utils.fromAscii(body.id),
-      requestDate,
-      pcrAddress,
-    ],
-    '/////////////////////////////////////'
-  );
   let funcArguments = web3.eth.abi
     .encodeParameters(funcAbi.inputs, [
       Web3Utils.fromAscii(body.customerId),
@@ -315,7 +307,7 @@ async function getDataPCR(body, insuranceId, pcrRequestId) {
     contractAddress,
     privateFor,
     privateFrom;
-  if (config.orion.taker.publicKey != labPublicKey) {
+  if (besu.thisnode.url == "http://127.0.0.1:20002") {
     privateFrom = config.orion.taker.publicKey;
     funcAbi = await getFunctionAbi(insuranceAbi, 'getPCR');
     funcArguments = web3.eth.abi
@@ -584,7 +576,7 @@ exports.getAllInsurancePolicy = function (body) {
  * new PCR test request to a customer
  * Hotel create a new PCR Request to check-in os a customer
  *
- * body PcrRequestItem PCR Request to create
+ * body PcrRequestItem PCR Request to create {id, customerId}
  * insuredId insuranceId
  * no response value expected for this operation
  **/
@@ -651,14 +643,14 @@ exports.getPcrRequest = function (body, insuranceId, pcrRequestId) {
  **/
 exports.setResultPcrRequest = function (
   body,
-  constractaddress,
+  contractaddress,
   insuranceId,
   pcrRequestId
 ) {
   return new Promise(async function (resolve, reject) {
     //TODO
     const resultDate = parseInt(new Date().getTime() / 1000);
-    updatePCR(body, constractaddress, resultDate)
+    updatePCR(body, contractaddress, resultDate)
       .then((res) => {
         console.log('PCR actualizada');
         resolve();
