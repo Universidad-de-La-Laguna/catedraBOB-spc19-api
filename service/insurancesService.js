@@ -268,12 +268,15 @@ async function getInsuranceAddressByInsuranceId(insuranceId) {
  */
 async function addPCR(body, insuranceAddress, requestDate, pcrAddress) {
   let funcAbi = await getFunctionAbi(insuranceAbi, 'addPCRtoInsured');
-  console.log([
-    Web3Utils.fromAscii(body.customerId),
-    Web3Utils.fromAscii(body.id),
-    requestDate,
-    pcrAddress,
-  ], "/////////////////////////////////////")
+  console.log(
+    [
+      Web3Utils.fromAscii(body.customerId),
+      Web3Utils.fromAscii(body.id),
+      requestDate,
+      pcrAddress,
+    ],
+    '/////////////////////////////////////'
+  );
   let funcArguments = web3.eth.abi
     .encodeParameters(funcAbi.inputs, [
       Web3Utils.fromAscii(body.customerId),
@@ -531,6 +534,7 @@ exports.addInsurancePolicy = function (body) {
             exports.addPcrRequest(pcrInfoPair, body.id);
           })
         ).then((res) => {
+          console.log('Poliza añadida correctamente');
           resolve();
         });
       })
@@ -554,14 +558,20 @@ exports.getAllInsurancePolicy = function (body) {
     // diferentes ya que la mutua ve todas las pólizas y el hotel solo las suyas
     if (config.orion.taker != mutuaPublicKey) {
       getAllInsurancePolicyHotel(body)
-        .then((res) => resolve(res))
+        .then((res) => {
+          console.log('Pólizas recuperadas con éxito');
+          resolve(res);
+        })
         .catch((error) => {
           console.log('Error obteniendo polizas de hotel: ', error);
           reject(error);
         });
     } else {
       getAllInsurancePolicyMutua(body)
-        .then((res) => resolve(res))
+        .then((res) => {
+          console.log('Pólizas recuperadas con éxito');
+          resolve(res);
+        })
         .catch((error) => {
           console.log('Error obteniendo polizas de Mutua: ', error);
           reject(error);
@@ -591,9 +601,12 @@ exports.addPcrRequest = function (body, insuranceId) {
       .then((pcrAddress) => {
         getInsuranceAddressByInsuranceId(insuranceId).then(
           (insuranceAddress) => {
-            addPCR(body, insuranceAddress, requestDate, pcrAddress).then((res) => {
-              resolve();
-            });
+            addPCR(body, insuranceAddress, requestDate, pcrAddress).then(
+              (res) => {
+                console.log("PCR Añadida con éxito");
+                resolve();
+              }
+            );
           }
         );
       })
@@ -616,6 +629,7 @@ exports.getPcrRequest = function (body, insuranceId, pcrRequestId) {
     //TODO
     getDataPCR(body, insuranceId, pcrRequestId)
       .then((result) => {
+        console.log("PCR recuperada con éxito");
         resolve(result);
       })
       .catch((error) => {
@@ -645,9 +659,13 @@ exports.setResultPcrRequest = function (
     //TODO
     const resultDate = parseInt(new Date().getTime() / 1000);
     updatePCR(body, constractaddress, resultDate)
-      .then((res) => resolve())
+      .then((res) => {
+        console.log('PCR actualizada');
+        resolve();
+      })
       .catch((error) => {
         console.log('Error al actualizar PCR: ', error);
+        reject(error);
       });
   });
 };
