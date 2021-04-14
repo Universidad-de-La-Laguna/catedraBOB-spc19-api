@@ -112,7 +112,7 @@ async function getContractAddress(transactionHash, pubKey) {
 function insuranceDataObjectToArray(body) {
   const hotelData = [
     body.taker.takerNif,
-    body.taker.takerFullName,
+    body.taker.takerContactPostalCode,
     body.taker.takerContactTown,
     body.taker.takerContactLocation,
     body.taker.takerContactTelephone,
