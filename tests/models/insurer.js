@@ -2,8 +2,6 @@
 
 const mongoose = require('mongoose')
 
-const pcrRequestSchema = require('./pcrRequest').pcrRequestSchema
-
 const takerSchema = new mongoose.Schema({
     takerId: { type: String, required: true },
     takerNif: { type: String, required: true },
@@ -28,6 +26,14 @@ const customerSchema = new mongoose.Schema({
     customerBirthDate: { type: String, required: true },
     negativePcrDate: { type: String, required: true },
     negativePcrHash: { type: String, required: true }
+})
+
+const pcrRequestSchema = new mongoose.Schema({
+    customerId: { type: String, required: true },
+    id: { type: String, required: true },
+    requestDate: { type: String, required: false },
+    resultDate: { type: String, required: false },
+    result: { type: String, required: false }
 })
 
 /**

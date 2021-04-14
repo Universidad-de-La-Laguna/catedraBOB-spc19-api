@@ -14,7 +14,9 @@ const laboratoryBearerToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIx
 const NEGATIVEPCRHOURSDIFF = 80
 const FAKEINSURANCEID = "FAKEINSURANCEID"
 const FAKEPCRREQUESTID = "FAKEPCRREQUESTID"
-const PCRREQUEST_EXAMPLECONTRACTADDRESS = "0x0472ec0185ebb8202f3d4ddb0226998889663cf2"
+const PCRREQUEST_EXAMPLECONTRACTADDRESS = "0x9e7fb7a7b222a670adf7457cde2beadacaac3a7d"
+
+const _cleanUuid = (uuid) => uuid.replace(/-/g, "")
 
 // Usar versión mockeada del servicio. Si se quiere usar versión real, basta con comentar la línea correspondiente.
 // Las versiones mockeadas usan una persistencia con MongoDB en lugar de blockchain
@@ -26,8 +28,14 @@ describe('insurance', function() {
 
     var now = new Date()
 
+    let pcrRequestData = {
+        id: "d290f1ee-6c54-4b01-90e6-d701748f0853",
+        customerId: "c4f40996-9d12-11eb-a8b3-0242ac130003"
+        // requestDate: now.toISOString()
+    }    
+
     let insuranceData = {
-        id: "d290f1ee-6c54-4b01-90e6-d701748f0851",
+        id: "0a8e228d-dc2b-4582-a961-1c52cd316eb2",
         taker: {
             takerId: "d290f1ee-6c54-4b01-90e6-d701748f0852",
             takerNif: "12345678H",
@@ -39,30 +47,28 @@ describe('insurance', function() {
             takerContactTelephone: "555123456",
             takerContactMobile: "646123456",
             takerContactEmail: "taker@example.com",
-            takerIBAN: "ES2712345678901234567890"
+            takerIBAN: "ES7921000813610123456789"
         },
         customers: [
             {
-                customerId: "customer1",
+                customerId: "c4f40996-9d12-11eb-a8b3-0242ac130003",
                 customerNif: "12345678H",
                 customerFullName: "My Full Name",
                 customerGender: "MALE",
                 customerBirthDate: "2016-08-29T09:12:33.001Z",
                 customerTelephone: "555123456",
                 customerEmail: "myemail@example.com",
-                negativePcrDate: "2016-08-29T09:12:33.001Z",
-                negativePcrHash: "a3b5543998381d38ee72e2793488d1714c3f8d90f4bda632a411cb32f793bf0a"
+                negativePcrDate: "2021-04-13T09:12:33.001Z",
+                negativePcrHash: "0xc8036852526c547c553bdbdc1f577a81ecaf4479f229ae32de640d32eff1c3b5"
             }
         ],
+        contractDate: now.toISOString(),
         startDate: now.toISOString(),
         finishDate: now.toISOString(),
-        assuredPrice: 50
-    }
-
-    let pcrRequestData = {
-        id: "d290f1ee-6c54-4b01-90e6-d701748f0853",
-        customerId: "customer1",
-        requestDate: now.toISOString()
+        assuredPrice: 50,
+        pcrRequests: [
+            pcrRequestData
+        ]
     }
 
     beforeAll(async () => {
@@ -193,28 +199,6 @@ describe('insurance', function() {
             .expect(403, done)
         })
 
-        it('Should return json a 201 status and create item', async done => {
-            await request.post(`/insurance/${insuranceData.id}/pcrRequests`)
-            .send(pcrRequestData)
-            .set('Accept', 'application/json')
-            .set('Authorization', 'Bearer ' + takerBearerToken)
-            .expect('Content-Type', /json/)
-            .expect(201)
-
-            // Check pcr request inserted
-            request.get('/insurances')
-            .set('Accept', 'application/json')
-            .set('Authorization', 'Bearer ' + takerBearerToken)
-            .expect('Content-Type', /json/)
-            .expect(200)
-            .then( (res) => {
-                expect(res.body.length).toEqual(1)
-                expect(res.body[0].pcrRequests.length).toEqual(1)
-                expect(res.body[0].pcrRequests[0].id).toEqual(pcrRequestData.id)
-                done()
-            })
-        })
-
         it('Should return 409 status by pcrRequest already exists', done => {
             request.post(`/insurance/${insuranceData.id}/pcrRequests`)
             .send(pcrRequestData)
@@ -222,6 +206,31 @@ describe('insurance', function() {
             .set('Authorization', 'Bearer ' + takerBearerToken)
             .expect('Content-Type', /json/)
             .expect(409, done)
+        })
+
+        it('Should return json a 201 status and create item', async done => {
+            let secondPcrRequestData = Object.assign({}, pcrRequestData)
+            secondPcrRequestData.id = 'd290f1ee-6c54-4b01-90e6-d701748f0854'
+
+            await request.post(`/insurance/${insuranceData.id}/pcrRequests`)
+            .send(secondPcrRequestData)
+            .set('Accept', 'application/json')
+            .set('Authorization', 'Bearer ' + takerBearerToken)
+            .expect('Content-Type', /json/)
+            .expect(201)
+
+            //Check pcr request inserted
+            request.get('/insurances')
+            .set('Accept', 'application/json')
+            .set('Authorization', 'Bearer ' + takerBearerToken)
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .then( (res) => {
+                expect(res.body.length).toEqual(1)
+                expect(res.body[0].pcrRequests.length).toEqual(2)
+                expect(res.body[0].pcrRequests[1].id).toEqual(_cleanUuid(secondPcrRequestData.id))
+                done()
+            })
         })
 
         it('Should return 400 status by incomplete pcrRequest', done => {
@@ -279,7 +288,7 @@ describe('insurance', function() {
             .expect('Content-Type', /json/)
             .expect(200)
             .then( (res) => {
-                expect(res.body.id).toEqual(pcrRequestData.id)
+                expect(res.body.id).toEqual(_cleanUuid(pcrRequestData.id))
                 done()
             })
         })
@@ -287,6 +296,7 @@ describe('insurance', function() {
     })
 
     describe('PATCH PCR Request', () => {
+
         it('Insurers can not update a PCRRequest', done => {
             request.patch(`/insurance/${insuranceData.id}/pcrRequests/${pcrRequestData.id}?contractaddress=${PCRREQUEST_EXAMPLECONTRACTADDRESS}`)
             .set('Accept', 'application/json')
