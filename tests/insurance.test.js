@@ -14,7 +14,9 @@ const laboratoryBearerToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIx
 const NEGATIVEPCRHOURSDIFF = 80
 const FAKEINSURANCEID = "FAKEINSURANCEID"
 const FAKEPCRREQUESTID = "FAKEPCRREQUESTID"
-const PCRREQUEST_EXAMPLECONTRACTADDRESS = "0x0472ec0185ebb8202f3d4ddb0226998889663cf2"
+const PCRREQUEST_EXAMPLECONTRACTADDRESS = "0x9e7fb7a7b222a670adf7457cde2beadacaac3a7d"
+
+const _cleanUuid = (uuid) => uuid.replace(/-/g, "")
 
 // Usar versión mockeada del servicio. Si se quiere usar versión real, basta con comentar la línea correspondiente.
 // Las versiones mockeadas usan una persistencia con MongoDB en lugar de blockchain
@@ -118,13 +120,13 @@ describe('insurance', function() {
             .expect(400, done);
         })
 
-        // it('Should return 415 by no body content', done => {
-        //     request.post('/insurances')
-        //     .set('Accept', 'application/json')
-        //     .set('Authorization', 'Bearer ' + takerBearerToken)
-        //     .expect('Content-Type', /json/)
-        //     .expect(415, done);
-        // })
+        it('Should return 415 by no body content', done => {
+            request.post('/insurances')
+            .set('Accept', 'application/json')
+            .set('Authorization', 'Bearer ' + takerBearerToken)
+            .expect('Content-Type', /json/)
+            .expect(415, done);
+        })
 
         it('Should return 409 by insurance already exists', done => {
             request.post('/insurances')
@@ -188,7 +190,7 @@ describe('insurance', function() {
     })
 
     describe('POST PCR Request', () => {
-/*
+
         it('Should return 403 status by invalid role', done => {
             request.post(`/insurance/${insuranceData.id}/pcrRequests`)
             .send(pcrRequestData)
@@ -196,29 +198,7 @@ describe('insurance', function() {
             .set('Authorization', 'Bearer ' + insurerBearerToken)
             .expect(403, done)
         })
-*/
-        it('Should return json a 201 status and create item', done => {
-            request.post(`/insurance/${insuranceData.id}/pcrRequests`)
-            .send(pcrRequestData)
-            .set('Accept', 'application/json')
-            .set('Authorization', 'Bearer ' + takerBearerToken)
-            .expect('Content-Type', /json/)
-            .expect(201, done)
 
-            // Check pcr request inserted
-            // request.get('/insurances')
-            // .set('Accept', 'application/json')
-            // .set('Authorization', 'Bearer ' + takerBearerToken)
-            // .expect('Content-Type', /json/)
-            // .expect(200)
-            // .then( (res) => {
-            //     expect(res.body.length).toEqual(1)
-            //     expect(res.body[0].pcrRequests.length).toEqual(1)
-            //     expect(res.body[0].pcrRequests[0].id).toEqual(pcrRequestData.id)
-            //     done()
-            // })
-        })
-/*
         it('Should return 409 status by pcrRequest already exists', done => {
             request.post(`/insurance/${insuranceData.id}/pcrRequests`)
             .send(pcrRequestData)
@@ -226,6 +206,31 @@ describe('insurance', function() {
             .set('Authorization', 'Bearer ' + takerBearerToken)
             .expect('Content-Type', /json/)
             .expect(409, done)
+        })
+
+        it('Should return json a 201 status and create item', async done => {
+            let secondPcrRequestData = Object.assign({}, pcrRequestData)
+            secondPcrRequestData.id = 'd290f1ee-6c54-4b01-90e6-d701748f0854'
+
+            await request.post(`/insurance/${insuranceData.id}/pcrRequests`)
+            .send(secondPcrRequestData)
+            .set('Accept', 'application/json')
+            .set('Authorization', 'Bearer ' + takerBearerToken)
+            .expect('Content-Type', /json/)
+            .expect(201)
+
+            //Check pcr request inserted
+            request.get('/insurances')
+            .set('Accept', 'application/json')
+            .set('Authorization', 'Bearer ' + takerBearerToken)
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .then( (res) => {
+                expect(res.body.length).toEqual(1)
+                expect(res.body[0].pcrRequests.length).toEqual(2)
+                expect(res.body[0].pcrRequests[1].id).toEqual(_cleanUuid(secondPcrRequestData.id))
+                done()
+            })
         })
 
         it('Should return 400 status by incomplete pcrRequest', done => {
@@ -239,9 +244,9 @@ describe('insurance', function() {
             .expect('Content-Type', /json/)
             .expect(400, done)
         })
-*/
+
     })
-/*
+
     describe('GET PCR Request', () => {
 
         it('Should return 403 status by invalid role', done => {
@@ -283,7 +288,7 @@ describe('insurance', function() {
             .expect('Content-Type', /json/)
             .expect(200)
             .then( (res) => {
-                expect(res.body.id).toEqual(pcrRequestData.id)
+                expect(res.body.id).toEqual(_cleanUuid(pcrRequestData.id))
                 done()
             })
         })
@@ -291,6 +296,7 @@ describe('insurance', function() {
     })
 
     describe('PATCH PCR Request', () => {
+
         it('Insurers can not update a PCRRequest', done => {
             request.patch(`/insurance/${insuranceData.id}/pcrRequests/${pcrRequestData.id}?contractaddress=${PCRREQUEST_EXAMPLECONTRACTADDRESS}`)
             .set('Accept', 'application/json')
@@ -432,7 +438,7 @@ describe('insurance', function() {
         })
 
     })
-*/
+
     afterAll(async done => {
         // Close http server
         server.close(done)
