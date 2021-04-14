@@ -15,6 +15,8 @@ const helpers = require('../../utils/helpers')
 
 const config = require('../../config')
 
+const _cleanUuid = (uuid) => uuid.replace(/-/g, "");
+
 /**
  * register new insurance policy
  * Add a new insurance policy to the system
@@ -65,13 +67,14 @@ exports.getAllInsurancePolicy = function() {
 exports.addPcrRequest = function(body, insuranceId) {
   return new Promise(async function(resolve, reject) {
     // check if insurance already exists
-    let insurance = await insurerModel.find({ id: insuranceId })
+    let insurance = await insurerModel.find({ id: _cleanUuid(insuranceId) })
     if (insurance.length !== 1)
       reject(new Error('Invalid data'))
     else {
         // check if pcrRequest already exists
-        let pcrReq = insurance[0].pcrRequests.find(p => p.id === body.id)
+        let pcrReq = insurance[0].pcrRequests.find(p => p.id === _cleanUuid(body.id))
         if (typeof pcrReq !== 'undefined') {
+          //FIX: Mirar porque entra por aqui
           reject(new Error('Conflict'))
         }
         else {
@@ -96,12 +99,12 @@ exports.addPcrRequest = function(body, insuranceId) {
  **/
 exports.getPcrRequest = function(insuranceId, pcrRequestId) {
   return new Promise(async function(resolve, reject) {
-    let insurance = await insurerModel.find({ id: insuranceId })
+    let insurance = await insurerModel.find({ id: _cleanUuid(insuranceId) })
     if (insurance.length !== 1)
       reject(new Error('Invalid data'))
     else {
       // check if pcrRequest already exists
-      let pcrReq = insurance[0].pcrRequests.find(p => p.id === pcrRequestId)
+      let pcrReq = insurance[0].pcrRequests.find(p => p.id === _cleanUuid(pcrRequestId))
       if (typeof pcrReq === 'undefined')
         reject(new Error('Invalid data'))
       else

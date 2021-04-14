@@ -28,8 +28,8 @@ describe('insurance', function() {
 
     let pcrRequestData = {
         id: "d290f1ee-6c54-4b01-90e6-d701748f0853",
-        customerId: "c4f40996-9d12-11eb-a8b3-0242ac130003",
-        requestDate: now.toISOString()
+        customerId: "c4f40996-9d12-11eb-a8b3-0242ac130003"
+        // requestDate: now.toISOString()
     }    
 
     let insuranceData = {
@@ -197,8 +197,8 @@ describe('insurance', function() {
             .expect(403, done)
         })
 */
-        it('Should return json a 201 status and create item', async done => {
-            await request.post(`/insurance/${insuranceData.id}/pcrRequests`)
+        it('Should return json a 201 status and create item', done => {
+            request.post(`/insurance/${insuranceData.id}/pcrRequests`)
             .send(pcrRequestData)
             .set('Accept', 'application/json')
             .set('Authorization', 'Bearer ' + takerBearerToken)
