@@ -8,7 +8,7 @@ const config = require('../config');
 const { deseriality, multipleDeseriality } = require('../scripts/deseriality');
 const { besu } = require('../config');
 
-const chainId = 2018;
+const chainId = 1337;
 
 const web3 = new EEAClient(new Web3(config.besu.thisnode.url), chainId);
 
@@ -307,7 +307,7 @@ async function getDataPCR(body, insuranceId, pcrRequestId) {
     contractAddress,
     privateFor,
     privateFrom;
-  if (besu.thisnode.url == "http://127.0.0.1:20002") {
+  if (besu.thisnode.url === 'http://127.0.0.1:20002') {
     privateFrom = config.orion.taker.publicKey;
     funcAbi = await getFunctionAbi(insuranceAbi, 'getPCR');
     funcArguments = web3.eth.abi
@@ -595,7 +595,7 @@ exports.addPcrRequest = function (body, insuranceId) {
           (insuranceAddress) => {
             addPCR(body, insuranceAddress, requestDate, pcrAddress).then(
               (res) => {
-                console.log("PCR Añadida con éxito");
+                console.log('PCR Añadida con éxito, address: ', pcrAddress);
                 resolve();
               }
             );
@@ -621,7 +621,7 @@ exports.getPcrRequest = function (body, insuranceId, pcrRequestId) {
     //TODO
     getDataPCR(body, insuranceId, pcrRequestId)
       .then((result) => {
-        console.log("PCR recuperada con éxito");
+        console.log('PCR recuperada con éxito');
         resolve(result);
       })
       .catch((error) => {
@@ -675,20 +675,20 @@ exports.deletePcrRequest = function (insuranceId, pcrRequestId) {
   return new Promise(async function (resolve, reject) {
     //TODO
     deletePCRInsurance(insuranceId, pcrRequestId)
+      .then((contractadress) => {
+        deletePCR(contractadress)
+          .then(() => {
+            console.log('PCR eliminada con éxito');
+            resolve();
+          })
+          .catch((error) => {
+            console.log('Error al borrar PCR en contrato PCR: ', error);
+            reject(error);
+          });
+      })
       .catch((error) => {
         console.log('Error al borrar PCR en la póliza: ', error);
         reject(error);
-      })
-      .then((contractadress) => {
-        deletePCR(contractadress);
-      })
-      .catch((error) => {
-        console.log('Error al borrar PCR en contrato PCR: ', error);
-        reject(error);
-      })
-      .then(() => {
-        console.log('PCR eliminada con éxito');
-        resolve();
       });
   });
 };

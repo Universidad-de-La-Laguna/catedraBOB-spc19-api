@@ -4,7 +4,7 @@ const Web3 = require('web3');
 const EEAClient = require('web3-eea');
 const config = require('../config')
 
-const chainId = 2018;
+const chainId = 1337;
 const web3Mutua = new EEAClient(new Web3(config.besu.thisnode.url), chainId);
 
 const Spc19ContractPath = path.resolve(
