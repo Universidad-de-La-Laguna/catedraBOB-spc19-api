@@ -335,7 +335,7 @@ components:
       required:
       - customerId
       - id
-      - requestDate
+      # - requestDate
       type: object
       properties:
         id:
