@@ -14,7 +14,7 @@ module.exports = {
         "Invalid data": 400
     },
     contracts: {
-        spc19ContractAddress: process.env.SPC19CONTRACTADDRESS || "0x1c4a61415577d2d5624c173b4ddc98d51852be46"
+        spc19ContractAddress: process.env.SPC19CONTRACTADDRESS
     },
     orion: {
       taker: {
