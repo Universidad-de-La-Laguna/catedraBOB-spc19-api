@@ -10,6 +10,4 @@ const pcrRequestSchema = new mongoose.Schema({
     result: { type: String, required: false }
 })
 
-module.exports.pcrRequestSchema = pcrRequestSchema
-
 module.exports = mongoose.model('pcrRequest', pcrRequestSchema)
