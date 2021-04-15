@@ -65,8 +65,33 @@ To build docker image:
 docker build -t spc19-api .
 ```
 
-Run container:
+### Execution:
+
+For taker:
 
 ```sh
-docker run -d --name spc19-api -p 8080:8080 spc19-api
+docker run -d \
+  --name spc19-api-taker \
+  -e NODEROLE=taker \
+  -e BESUNODEURL=http://spc19-test-network_member2besu_1:8545 \
+  -e BESUNODEWSURL=ws://spc19-test-network_member2besu_1:8546 \
+  -e BESUNODEPRIVATEKEY=c87509a1c067bbde78beb793e6fa76530b6382a4c0241e5e4a9ec0a0f44dc0d3 \
+  -e SPC19CONTRACTADDRESS=0x9e7fb7a7b222a670adf7457cde2beadacaac3a7d \
+  -p 7082:8080 \
+  --network spc19-test-network_quorum-dev-quickstart \
+  spc19-api
+```
+
+For laboratory:
+
+```sh
+docker run -d \
+  --name spc19-api-laboratory \
+  -e NODEROLE=laboratory \
+  -e BESUNODEURL=http://spc19-test-network_member3besu_1:8545 \
+  -e BESUNODEWSURL=ws://spc19-test-network_member3besu_1:8546 \
+  -e BESUNODEPRIVATEKEY=ae6ae8e5ccbfb04590405997ee2d52d2b330726137b875053c36d94e974d162f \
+  -p 7084:8080 \
+  --network spc19-test-network_quorum-dev-quickstart \
+  spc19-api
 ```
