@@ -76,11 +76,12 @@ docker run -d \
   -e BESUNODEURL=http://spc19-test-network_member2besu_1:8545 \
   -e BESUNODEWSURL=ws://spc19-test-network_member2besu_1:8546 \
   -e BESUNODEPRIVATEKEY=c87509a1c067bbde78beb793e6fa76530b6382a4c0241e5e4a9ec0a0f44dc0d3 \
-  -e SPC19CONTRACTADDRESS=0x9e7fb7a7b222a670adf7457cde2beadacaac3a7d \
   -p 7082:8080 \
   --network spc19-test-network_quorum-dev-quickstart \
   spc19-api
 ```
+
+> Nota: esto desplegará un nuevo contrato general SPC19. Si se desea utilizar uno existente, añadir la variable de entorno SPC19CONTRACTADDRESS con la dirección del contrato. Ejemplo: `-e SPC19CONTRACTADDRESS=0x9e7fb7a7b222a670adf7457cde2beadacaac3a7d`
 
 For laboratory:
 

@@ -1,3 +1,8 @@
+// La dirección del contrato SPC19 se obtiene en tiempo de ejecución la primera vez
+// que se ejecuta el servicio, por lo que se guarda como variable global para poder
+// ser actualizada. En succesivas ejecuciones se puede establecer como variable de entorno
+global.spc19ContractAddress = process.env.SPC19CONTRACTADDRESS
+
 module.exports = {
     JWT: {
         secretKey: process.env.JWT_SECRET || 'secret',
@@ -12,9 +17,6 @@ module.exports = {
         "Missing data": 415,
         "Conflict": 409,
         "Invalid data": 400
-    },
-    contracts: {
-        spc19ContractAddress: process.env.SPC19CONTRACTADDRESS
     },
     orion: {
       taker: {
