@@ -62,23 +62,37 @@ payload is:
 To build docker image:
 
 ```sh
-docker build -t spc19-api .
+docker build -t catedrabob-spc19-api .
 ```
 
 ### Execution:
+
+For insurer:
+
+```sh
+docker run -d \
+  --name catedrabob-spc19-api-insurer \
+  -e NODEROLE=insurer \
+  -e BESUNODEURL=http://spc19-test-network_member1besu_1:8545 \
+  -e BESUNODEWSURL=ws://spc19-test-network_member1besu_1:8546 \
+  -e BESUNODEPRIVATEKEY=8f2a55949038a9610f50fb23b5883af3b4ecb3c3bb792cbcefbd1542c692be63 \
+  -p 7080:8080 \
+  --network spc19-test-network_quorum-dev-quickstart \
+  catedrabob-spc19-api
+```
 
 For taker:
 
 ```sh
 docker run -d \
-  --name spc19-api-taker \
+  --name catedrabob-spc19-api-taker \
   -e NODEROLE=taker \
   -e BESUNODEURL=http://spc19-test-network_member2besu_1:8545 \
   -e BESUNODEWSURL=ws://spc19-test-network_member2besu_1:8546 \
   -e BESUNODEPRIVATEKEY=c87509a1c067bbde78beb793e6fa76530b6382a4c0241e5e4a9ec0a0f44dc0d3 \
   -p 7082:8080 \
   --network spc19-test-network_quorum-dev-quickstart \
-  spc19-api
+  catedrabob-spc19-api
 ```
 
 > Nota: esto desplegará un nuevo contrato general SPC19. Si se desea utilizar uno existente, añadir la variable de entorno SPC19CONTRACTADDRESS con la dirección del contrato. Ejemplo: `-e SPC19CONTRACTADDRESS=0x9e7fb7a7b222a670adf7457cde2beadacaac3a7d`
@@ -87,12 +101,12 @@ For laboratory:
 
 ```sh
 docker run -d \
-  --name spc19-api-laboratory \
+  --name catedrabob-spc19-api-laboratory \
   -e NODEROLE=laboratory \
   -e BESUNODEURL=http://spc19-test-network_member3besu_1:8545 \
   -e BESUNODEWSURL=ws://spc19-test-network_member3besu_1:8546 \
   -e BESUNODEPRIVATEKEY=ae6ae8e5ccbfb04590405997ee2d52d2b330726137b875053c36d94e974d162f \
   -p 7084:8080 \
   --network spc19-test-network_quorum-dev-quickstart \
-  spc19-api
+  catedrabob-spc19-api
 ```
