@@ -36,19 +36,21 @@ contract PCR {
         bytes32 _insuredId,
         uint256 _requestDate
     ) {
+        pcrData.requestDate = _requestDate;
         pcrData.insuredId = _insuredId;
         pcrData.insuranceId = _insuranceId;
         pcrData.id = _id;
         owner = payable(msg.sender);
         completed = false;
-        pcrData.requestDate = _requestDate;
         pcrData.result = "UNDEFINED";
         deleted = false;
     }
 
     /// @notice Update de pcr result state from the laboratory.
-    function updatePCR(bytes32 _result, uint256 _resultDate) external notDeleted {
-        require(!completed);
+    function updatePCR(bytes32 _result, uint256 _resultDate, bytes32 _insuranceId, bytes32 _pcrId) external notDeleted 
+    {
+        require(!completed, "PCRs can only Update once");
+        require(_insuranceId == pcrData.insuranceId && _pcrId == pcrData.id, "Insurance and PCR ids have to be the same as the ones in this contract");
         completed = true;
         pcrData.result = _result;
         pcrData.resultDate = _resultDate;

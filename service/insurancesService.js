@@ -15,9 +15,9 @@ const web3 = new EEAClient(new Web3(config.besu.thisnode.url), chainId);
 const labPublicKey = config.orion.laboratory.publicKey;
 const mutuaPublicKey = config.orion.insurer.publicKey;
 
-exports.setConfig = function (x) {
-  config.spc19ContractAddress.set(x);
-};
+// exports.setConfig = function (x) {
+//   config.spc19ContractAddress.set(x);
+// };
 
 const insuranceContractPath = path.resolve(
   __dirname,
@@ -367,28 +367,45 @@ async function getDataPCR(body, insuranceId, pcrRequestId) {
  * @param {Number} resultDate
  * @returns Hash of the transaction
  */
-async function updatePCR(body, contractaddress, resultDate) {
-  let funcAbi = await getFunctionAbi(PCRAbi, 'updatePCR');
-  let funcArguments = web3.eth.abi
-    .encodeParameters(funcAbi.inputs, [
-      Web3Utils.fromAscii(body.result),
-      resultDate,
-    ])
-    .slice(2);
-  let functionParams = {
-    to: contractaddress,
-    data: funcAbi.signature + funcArguments,
-    privateFrom: config.orion.laboratory.publicKey,
-    privateFor: [config.orion.taker.publicKey],
-    privateKey: config.besu.thisnode.privateKey,
-  };
-  let transactionHash = await web3.eea.sendRawTransaction(functionParams);
-  console.log(`Transaction hash: ${transactionHash}`);
-  let result = await web3.priv.getTransactionReceipt(
-    transactionHash,
-    config.orion.laboratory.publicKey
-  );
-  return result;
+async function updatePCR(
+  body,
+  insuranceId,
+  pcrRequestId,
+  contractaddress,
+  resultDate
+) {
+  return new Promise(async function (resolve, reject) {
+    let funcAbi = await getFunctionAbi(PCRAbi, 'updatePCR');
+    let funcArguments = web3.eth.abi
+      .encodeParameters(funcAbi.inputs, [
+        Web3Utils.fromAscii(body.result),
+        resultDate,
+        Web3Utils.fromAscii(insuranceId),
+        Web3Utils.fromAscii(pcrRequestId),
+      ])
+      .slice(2);
+    let functionParams = {
+      to: contractaddress,
+      data: funcAbi.signature + funcArguments,
+      privateFrom: config.orion.laboratory.publicKey,
+      privateFor: [config.orion.taker.publicKey],
+      privateKey: config.besu.thisnode.privateKey,
+    };
+    let transactionHash = await web3.eea.sendRawTransaction(functionParams);
+    console.log(`Transaction hash: ${transactionHash}`);
+    let result = await web3.priv.getTransactionReceipt(
+      transactionHash,
+      config.orion.laboratory.publicKey
+    );
+    if (result.revertReason) {
+      console.log(
+        Web3Utils.toAscii(result.revertReason),
+        '//////////////////////////////////////////'
+      );
+      reject(Web3Utils.toAscii(result.revertReason));
+    }
+    resolve(result);
+  });
 }
 
 /**
@@ -655,14 +672,14 @@ exports.getPcrRequest = function (body, insuranceId, pcrRequestId) {
  **/
 exports.setResultPcrRequest = function (
   body,
-  contractaddress,
   insuranceId,
-  pcrRequestId
+  pcrRequestId,
+  contractaddress
 ) {
   return new Promise(async function (resolve, reject) {
     //TODO
     const resultDate = parseInt(new Date().getTime() / 1000);
-    updatePCR(body, contractaddress, resultDate)
+    updatePCR(body, insuranceId, pcrRequestId, contractaddress, resultDate)
       .then((res) => {
         console.log('PCR actualizada');
         resolve();
