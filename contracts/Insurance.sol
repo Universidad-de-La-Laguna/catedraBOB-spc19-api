@@ -183,7 +183,7 @@ contract Insurance is Seriality {
         // add insureds
         for (uint i=0; i < _insureds.length; i++) {
             insuredInInsurance[_insureds[i]] = true;
-            require(_insuredsNegPcrDate[i] >= (block.timestamp - 259200), "Check that PCR has been no more than 3 days ago.");
+            require(_insuredsNegPcrDate[i] >= (block.timestamp - 259200), "Check that previous PCR has been no more than 3 days ago.");
             insuredNegPcrDate[_insureds[i]] = _insuredsNegPcrDate[i];
             insuredNegPcrHash[_insureds[i]] = (_insuredsNegPcrHash[i]);
         }

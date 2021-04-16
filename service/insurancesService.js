@@ -6,7 +6,7 @@ const Web3Utils = require('web3-utils');
 const EEAClient = require('web3-eea');
 const config = require('../config');
 const { deseriality, multipleDeseriality } = require('../scripts/deseriality');
-const { besu } = require('../config');
+const { throws } = require('assert');
 
 const chainId = 1337;
 
@@ -14,6 +14,10 @@ const web3 = new EEAClient(new Web3(config.besu.thisnode.url), chainId);
 
 const labPublicKey = config.orion.laboratory.publicKey;
 const mutuaPublicKey = config.orion.insurer.publicKey;
+
+exports.setConfig = function (x) {
+  config.spc19ContractAddress.set(x);
+};
 
 const insuranceContractPath = path.resolve(
   __dirname,
@@ -49,27 +53,30 @@ const Spc19Bytecode = Spc19ContractJSON.evm.bytecode.object;
  * @param {Web3} web3
  * @returns {String} Hash de la transacción
  */
-async function createContract(bytecode, privFrom, privKey, privFor) {
-  // Creando contrato en nodo Mutua
-  const contractOptions = {
-    data: '0x' + bytecode,
-    privateFrom: privFrom, // orion.member1.publicKey,
-    privateFor: privFor, // [orion.member3.publicKey],
-    privateKey: privKey, // besu.member1.privateKey
-  };
-  console.log('Creating contract...');
-  const c = await web3.eea.sendRawTransaction(contractOptions);
-  let hash = await web3.priv.getTransactionReceipt(
-    c,
-    config.orion.taker.publicKey
-  );
-  if (hash.revertReason) {
-    console.log(
-      Web3Utils.toAscii(hash.revertReason),
-      '//////////////////////////////////////////'
+function createContract(bytecode, privFrom, privKey, privFor) {
+  return new Promise(async function (resolve, reject) {
+    // Creando contrato en nodo Mutua
+    const contractOptions = {
+      data: '0x' + bytecode,
+      privateFrom: privFrom, // orion.member1.publicKey,
+      privateFor: privFor, // [orion.member3.publicKey],
+      privateKey: privKey, // besu.member1.privateKey
+    };
+    console.log('Creating contract...');
+    const c = await web3.eea.sendRawTransaction(contractOptions);
+    let hash = await web3.priv.getTransactionReceipt(
+      c,
+      config.orion.taker.publicKey
     );
-  }
-  return c;
+    if (hash.revertReason) {
+      console.log(
+        Web3Utils.toAscii(hash.revertReason),
+        '//////////////////////////////////////////'
+      );
+      reject(Web3Utils.toAscii(hash.revertReason));
+    }
+    resolve(c);
+  });
 }
 
 /**
@@ -307,7 +314,7 @@ async function getDataPCR(body, insuranceId, pcrRequestId) {
     contractAddress,
     privateFor,
     privateFrom;
-  if (besu.thisnode.url === 'http://127.0.0.1:20002') {
+  if (config.besu.thisnode.url !== 'http://127.0.0.1:20004') {
     privateFrom = config.orion.taker.publicKey;
     funcAbi = await getFunctionAbi(insuranceAbi, 'getPCR');
     funcArguments = web3.eth.abi
@@ -525,10 +532,15 @@ exports.addInsurancePolicy = function (body) {
           datos[1].map((pcrInfoPair) => {
             exports.addPcrRequest(pcrInfoPair, body.id);
           })
-        ).then((res) => {
-          console.log('Poliza añadida correctamente');
-          resolve();
-        });
+        )
+          .then((res) => {
+            console.log('Poliza añadida correctamente');
+            resolve();
+          })
+          .catch((error) => {
+            console.log('Error al crear las PCR correspondientes', error);
+            reject(error);
+          });
       })
       .catch((error) => {
         console.log('Error al crear la póliza', error);
