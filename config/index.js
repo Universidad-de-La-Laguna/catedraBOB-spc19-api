@@ -35,15 +35,12 @@ module.exports = {
     },
     spc19ContractAddress: (function() {
         var value
-        function setBy(val) {
-           value = val
-        }
         return {
             set: function(x) {
-                setBy(x)
+                value = x
             },
             value: function() {
-                return value;
+                return value
             }
         }
     })()
