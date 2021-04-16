@@ -67,20 +67,6 @@ docker build -t catedrabob-spc19-api .
 
 ### Execution:
 
-For insurer:
-
-```sh
-docker run -d \
-  --name catedrabob-spc19-api-insurer \
-  -e NODEROLE=insurer \
-  -e BESUNODEURL=http://spc19-test-network_member1besu_1:8545 \
-  -e BESUNODEWSURL=ws://spc19-test-network_member1besu_1:8546 \
-  -e BESUNODEPRIVATEKEY=8f2a55949038a9610f50fb23b5883af3b4ecb3c3bb792cbcefbd1542c692be63 \
-  -p 7080:8080 \
-  --network spc19-test-network_quorum-dev-quickstart \
-  catedrabob-spc19-api
-```
-
 For taker:
 
 ```sh
@@ -96,6 +82,22 @@ docker run -d \
 ```
 
 > Nota: esto desplegará un nuevo contrato general SPC19. Si se desea utilizar uno existente, añadir la variable de entorno SPC19CONTRACTADDRESS con la dirección del contrato. Ejemplo: `-e SPC19CONTRACTADDRESS=0x9e7fb7a7b222a670adf7457cde2beadacaac3a7d`
+
+For insurer:
+
+```sh
+docker run -d \
+  --name catedrabob-spc19-api-insurer \
+  -e NODEROLE=insurer \
+  -e BESUNODEURL=http://spc19-test-network_member1besu_1:8545 \
+  -e BESUNODEWSURL=ws://spc19-test-network_member1besu_1:8546 \
+  -e BESUNODEPRIVATEKEY=8f2a55949038a9610f50fb23b5883af3b4ecb3c3bb792cbcefbd1542c692be63 \
+  -e SPC19CONTRACTADDRESS=$(docker logs catedrabob-spc19-api-taker | grep "SPC19CONTRACTADDRESS" | sed 's/.*SPC19CONTRACTADDRESS=\(.*\)/\1/') \
+  -p 7080:8080 \
+  --network spc19-test-network_quorum-dev-quickstart \
+  catedrabob-spc19-api
+```
+> Note: The insurer service instance require of taker instance, because getting SPC19CONTRACTADDRESS value from his logs.
 
 For laboratory:
 
