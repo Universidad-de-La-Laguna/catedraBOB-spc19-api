@@ -184,7 +184,7 @@ async function createInsurance(insuranceData) {
     .encodeParameters(funcAbi.inputs, [insuranceAddress])
     .slice(2);
   let functionParams = {
-    to: spc19ContractAddress,
+    to: config.spc19ContractAddress.value(),
     data: funcAbi.signature + addInsuranceArguments,
     privateFrom: config.orion.taker.publicKey,
     privateFor: [mutuaPublicKey],
@@ -240,7 +240,7 @@ async function getInsuranceAddressByInsuranceId(insuranceId) {
     .encodeParameters(funcAbi.inputs, [Web3Utils.fromAscii(insuranceId)])
     .slice(2);
   let functionParams = {
-    to: spc19ContractAddress,
+    to: config.spc19ContractAddress.value(),
     data: funcAbi.signature + funcArguments,
     privateFrom: config.orion.taker.publicKey,
     privateFor: [mutuaPublicKey],
@@ -447,7 +447,7 @@ async function deletePCR(contractaddress) {
 async function getAllInsurancePolicyHotel(body) {
   let funcAbi = await getFunctionAbi(Spc19Abi, 'getAllInsurances');
   let functionParams = {
-    to: spc19ContractAddress,
+    to: config.spc19ContractAddress.value(),
     data: funcAbi.signature,
     privateFrom: config.orion.taker.publicKey,
     privateFor: [mutuaPublicKey],
@@ -484,7 +484,7 @@ async function getAllInsurancePolicyMutua(body) {
   let insurancesTotalData = [];
   // for (iterar entre todos los contratos generales de todos los hoteles) {
   let functionParams = {
-    to: spc19ContractAddress, // aqui
+    to: config.spc19ContractAddress.value(), // aqui
     data: funcAbi.signature,
     privateFrom: mutuaPublicKey,
     privateFor: [config.orion.taker.publicKey], // aqui

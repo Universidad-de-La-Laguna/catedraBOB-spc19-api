@@ -1,7 +1,4 @@
-// La dirección del contrato SPC19 se obtiene en tiempo de ejecución la primera vez
-// que se ejecuta el servicio, por lo que se guarda como variable global para poder
-// ser actualizada. En succesivas ejecuciones se puede establecer como variable de entorno
-global.spc19ContractAddress = process.env.SPC19CONTRACTADDRESS
+'use strict'
 
 module.exports = {
     JWT: {
@@ -19,21 +16,35 @@ module.exports = {
         "Invalid data": 400
     },
     orion: {
-      taker: {
-        publicKey: process.env.TAKERPUBLICKEY || "Ko2bVqD+nNlNYL5EE7y3IdOnviftjiizpjRt+HTuFBs="
-      },
-      insurer: {
-        publicKey: process.env.INSURERPUBLICKEY || "A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo="
-      },
-      laboratory: {
-        publicKey: process.env.LABORATORYPUBLICKEY || "k2zXEin4Ip/qBGlRkJejnGWdP9cjkK+DAvKNW31L2C8="
-      }
+        taker: {
+            publicKey: process.env.TAKERPUBLICKEY || "Ko2bVqD+nNlNYL5EE7y3IdOnviftjiizpjRt+HTuFBs="
+        },
+        insurer: {
+            publicKey: process.env.INSURERPUBLICKEY || "A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo="
+        },
+        laboratory: {
+            publicKey: process.env.LABORATORYPUBLICKEY || "k2zXEin4Ip/qBGlRkJejnGWdP9cjkK+DAvKNW31L2C8="
+        }
     },
     besu: {
-      thisnode: {
-        url: process.env.BESUNODEURL || "http://127.0.0.1:20002",
-        wsUrl: process.env.BESUNODEWSURL || "ws://127.0.0.1:20003",
-        privateKey: process.env.BESUNODEPRIVATEKEY || "c87509a1c067bbde78beb793e6fa76530b6382a4c0241e5e4a9ec0a0f44dc0d3"
-      }
-    }
+        thisnode: {
+            url: process.env.BESUNODEURL || "http://127.0.0.1:20002",
+            wsUrl: process.env.BESUNODEWSURL || "ws://127.0.0.1:20003",
+            privateKey: process.env.BESUNODEPRIVATEKEY || "c87509a1c067bbde78beb793e6fa76530b6382a4c0241e5e4a9ec0a0f44dc0d3"
+        }
+    },
+    spc19ContractAddress: (function() {
+        var value
+        function setBy(val) {
+           value = val
+        }
+        return {
+            set: function(x) {
+                setBy(x)
+            },
+            value: function() {
+                return value;
+            }
+        }
+    })()
 }
