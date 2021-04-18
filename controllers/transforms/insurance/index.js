@@ -2,9 +2,9 @@ const _compareCustomerUuids = (a, b) =>
   a.customerId.localeCompare(b.customerId);
 const _cleanUuid = (uuid) => uuid.replace(/-/g, "");
 
-function sortCustomersAndPcrs(insurance) {
-  insurance.customers = insurance.customers.sort(_compareCustomerUuids);
-  insurance.pcrRequests = insurance.pcrRequests.sort(_compareCustomerUuids);
+function sortCustomersAndPcrs(insurance = {}) {
+  insurance.customers = insurance?.customers?.sort(_compareCustomerUuids);
+  insurance.pcrRequests = insurance?.pcrRequests?.sort(_compareCustomerUuids);
 }
 
 function cleanUuids(insurance) {

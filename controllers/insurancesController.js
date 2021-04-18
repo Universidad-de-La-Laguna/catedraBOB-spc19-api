@@ -5,6 +5,21 @@ var insuranceService = require("../service/insurancesService");
 const config = require("../config");
 const { insuranceSchema } = require("./validations/insurance");
 const insuranceTransforms = require("./transforms/insurance");
+const { ValidationError } = require("yup");
+
+function getErrorStatus(error) {
+  if (error instanceof ValidationError) {
+    if (error.type === "required") {
+      return 415;
+    } else {
+      return 400;
+    }
+  } else if (error instanceof Error) {
+    return config.errorStatusCodes[error.message];
+  } else {
+    return 500;
+  }
+}
 
 module.exports.addInsurancePolicy = async function addInsurancePolicy(
   req,
@@ -13,23 +28,21 @@ module.exports.addInsurancePolicy = async function addInsurancePolicy(
 ) {
   try {
     console.log("[INFO] New Insurance request");
-    insuranceTransforms.sortCustomersAndPcrs(req.body);
     console.log("[INFO] Validating new insurance request...");
+    insuranceTransforms.sortCustomersAndPcrs(req.body);
     const insuranceData = await insuranceSchema.validate(req.body);
+    insuranceTransforms.cleanUuids(insuranceData);
+
     console.log("[INFO] Success validating new insurance request");
     console.log("[INFO] Sending request to the Backend...");
-    insuranceTransforms.cleanUuids(insuranceData);
     const response = await insuranceService.addInsurancePolicy(insuranceData);
 
     console.log("[INFO] Success registering new insurance");
     utils.writeJson(res, response, 201);
-  } catch (response) {
-    console.error("[ERROR] New insurance error: %O", response);
-    let statusCode =
-      response instanceof Error
-        ? config.errorStatusCodes[response.message]
-        : 500;
-    utils.writeJson(res, response, statusCode);
+  } catch (error) {
+    const statusCode = getErrorStatus(error);
+    console.error("[ERROR] %d: New insurance error: %O", statusCode, error);
+    utils.writeJson(res, error, statusCode);
   }
 };
 
