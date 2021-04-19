@@ -240,8 +240,8 @@ contract Insurance is Seriality {
         bytes32 posPCR = "POSITIVE";
         bytes32 insuredId = pcrIdToInsuredId[_idPCR];
         require(isPcrActive[_idPCR], "La PCR tiene que existir");
-        pcrIdToData[insuredPCRs[insuredId][pcrLocation[_idPCR]]].result = _resultPCR;
-        pcrIdToData[insuredPCRs[insuredId][pcrLocation[_idPCR]]].resultDate = block.timestamp;
+        pcrIdToData[_idPCR].result = _resultPCR;
+        pcrIdToData[_idPCR].resultDate = block.timestamp;
         if (_resultPCR == posPCR) {
             positivePcrTest = true;
             emit positivePcr(insuredId, block.timestamp);

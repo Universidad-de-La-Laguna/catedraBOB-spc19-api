@@ -541,7 +541,7 @@ exports.addInsurancePolicy = function (body) {
   return new Promise(async function (resolve, reject) {
     //TODO
     if (config.businessParams.nodeRole !== 'taker') {
-      reject("Sólo los takers pueden crear pólizas");
+      reject('Sólo los takers pueden crear pólizas');
     }
     const datos = insuranceDataObjectToArray(body);
     createInsurance(datos[0])
@@ -554,7 +554,9 @@ exports.addInsurancePolicy = function (body) {
           })
         )
           .then((res) => {
-            console.log(`Poliza añadida correctamente, address: ${hotelInsuranceAddress}`);
+            console.log(
+              `Poliza añadida correctamente, address: ${hotelInsuranceAddress}`
+            );
             resolve();
           })
           .catch((error) => {
@@ -590,7 +592,7 @@ exports.getAllInsurancePolicy = function (body) {
           console.log('Error obteniendo polizas de hotel: ', error);
           reject(error);
         });
-    } else if (config.businessParams.nodeRole === 'insurer'){
+    } else if (config.businessParams.nodeRole === 'insurer') {
       getAllInsurancePolicyMutua(body)
         .then((res) => {
           console.log('Pólizas recuperadas con éxito');
@@ -601,7 +603,7 @@ exports.getAllInsurancePolicy = function (body) {
           reject(error);
         });
     } else {
-      reject("EL laboratorio no puede consultar pólizas");
+      reject('EL laboratorio no puede consultar pólizas');
     }
   });
 };
@@ -618,7 +620,7 @@ exports.addPcrRequest = function (body, insuranceId) {
   return new Promise(async function (resolve, reject) {
     //TODO
     if (config.businessParams.nodeRole !== 'taker') {
-      reject("Sólo los takers pueden crear solicitudes de PCR");
+      reject('Sólo los takers pueden crear solicitudes de PCR');
     }
     const requestDate = parseInt(new Date().getTime() / 1000);
     // Create PCR
@@ -687,7 +689,7 @@ exports.setResultPcrRequest = function (
   return new Promise(async function (resolve, reject) {
     //TODO
     if (config.businessParams.nodeRole !== 'laboratory') {
-      reject("Sólo el laboratorio puede actualizar las PCRs");
+      reject('Sólo el laboratorio puede actualizar las PCRs');
     }
     const resultDate = parseInt(new Date().getTime() / 1000);
     updatePCR(body, insuranceId, pcrRequestId, contractaddress, resultDate)
@@ -715,7 +717,7 @@ exports.deletePcrRequest = function (insuranceId, pcrRequestId) {
   return new Promise(async function (resolve, reject) {
     //TODO
     if (config.businessParams.nodeRole !== 'taker') {
-      reject("Sólo los takers pueden borrar PCRs");
+      reject('Sólo los takers pueden borrar PCRs');
     }
     deletePCRInsurance(insuranceId, pcrRequestId)
       .then((contractadress) => {
