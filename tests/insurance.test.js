@@ -363,7 +363,7 @@ describe('insurance', function() {
         it('Insurers can request a CheckPayment and correct calculate', async done => {
             // add a second pcrrequest
             let secondPcrRequestData = Object.assign({}, pcrRequestData)
-            secondPcrRequestData.id = 'secondPcrRequestDataId'
+            secondPcrRequestData.id = '45ca3a73-7fa1-4598-8492-573d152d3229'
             secondPcrRequestData.result = 'POSITIVE'
             secondPcrRequestData.resultDate = now.toISOString()
 

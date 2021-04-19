@@ -4,7 +4,11 @@ var utils = require("../utils/writer.js");
 var insuranceService = require("../service/insurancesService");
 const config = require("../config");
 const { insuranceSchema } = require("./validations/insurance");
+const { pcrRequestSchema } = require("./validations/pcrRequest");
+const { uuidSchema } = require("./validations/common");
+const commonTransforms = require("./transforms/common");
 const insuranceTransforms = require("./transforms/insurance");
+const pcrRequestTransforms = require("./transforms/pcrRequest");
 const { ValidationError } = require("yup");
 
 function getErrorStatus(error) {
@@ -61,20 +65,31 @@ module.exports.getAllInsurancePolicy = function getAllInsurancePolicy(
     });
 };
 
-module.exports.addPcrRequest = function addPcrRequest(req, res, next) {
-  insuranceService
-    .addPcrRequest(req.body, req.params.insuranceId)
-    .then(function (response) {
-      utils.writeJson(res, response, 201);
-    })
-    .catch(function (response) {
-      let statusCode =
-        response instanceof Error
-          ? config.errorStatusCodes[response.message]
-          : 500;
+module.exports.addPcrRequest = async function addPcrRequest(req, res, next) {
+  try {
+    console.log("[INFO] Add PCR request");
+    console.log("[INFO] Validating PCR request...");
 
-      utils.writeJson(res, response, statusCode);
-    });
+    const pcrRequest = await pcrRequestSchema.validate(req.body);
+    pcrRequestTransforms.cleanUuids(pcrRequest);
+
+    const _insuranceId = await uuidSchema.validate(req.params.insuranceId);
+    const insuranceId = commonTransforms.cleanUuid(_insuranceId);
+
+    console.log("[INFO] Success validating add PCR request");
+    console.log("[INFO] Sending request to the Backend...");
+    const response = await insuranceService.addPcrRequest(
+      pcrRequest,
+      insuranceId
+    );
+
+    console.log("[INFO] Success registering new PCR request");
+    utils.writeJson(res, response, 201);
+  } catch (error) {
+    const statusCode = getErrorStatus(error);
+    console.error("[ERROR] %d: Add PCR Request error: %O", statusCode, error);
+    utils.writeJson(res, error, statusCode);
+  }
 };
 
 module.exports.getPcrRequest = function getPcrRequest(req, res, next) {
