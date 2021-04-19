@@ -554,7 +554,7 @@ exports.addInsurancePolicy = function (body) {
           })
         )
           .then((res) => {
-            console.log('Poliza añadida correctamente');
+            console.log(`Poliza añadida correctamente, address: ${hotelInsuranceAddress}`);
             resolve();
           })
           .catch((error) => {
