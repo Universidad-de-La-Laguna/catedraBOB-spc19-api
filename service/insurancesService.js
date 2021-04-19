@@ -69,11 +69,11 @@ function createContract(bytecode, privFrom, privKey, privFor) {
       config.orion.taker.publicKey
     );
     if (hash.revertReason) {
+      let error = Web3Utils.toAscii('0x' + hash.revertReason.slice(138));
       console.log(
-        Web3Utils.toAscii(hash.revertReason),
-        '//////////////////////////////////////////'
+        error
       );
-      reject(Web3Utils.toAscii(hash.revertReason));
+      reject({code: "400", message: error});
     }
     resolve(c);
   });
@@ -326,6 +326,8 @@ async function getDataPCR(body, insuranceId, pcrRequestId) {
   } else {
     privateFrom = config.orion.laboratory.publicKey;
     funcAbi = await getFunctionAbi(PCRAbi, 'getPCRData');
+    if (body === undefined) throw "Undefined body";
+    if (body.contractaddress === undefined) throw "Undefined body";
     contractAddress = body.contractaddress;
     funcData = funcAbi.signature;
     privateFor = [config.orion.taker.publicKey];
@@ -398,11 +400,11 @@ async function updatePCR(
       config.orion.laboratory.publicKey
     );
     if (result.revertReason) {
+      let error = Web3Utils.toAscii('0x' + result.revertReason.slice(138));
       console.log(
-        Web3Utils.toAscii(result.revertReason),
-        '//////////////////////////////////////////'
+        error
       );
-      reject(Web3Utils.toAscii(result.revertReason));
+      reject({code: "400", message: error});
     }
     resolve(result);
   });
@@ -484,10 +486,11 @@ async function getAllInsurancePolicyHotel(body) {
     config.orion.taker.publicKey
   );
   if (result.revertReason) {
+    let error = Web3Utils.toAscii('0x' + result.revertReason.slice(138));
     console.log(
-      Web3Utils.toAscii(result.revertReason),
-      '///////////////////////////////////////'
+      error
     );
+    reject({code: "400", message: error});
   }
   let resultData = await web3.eth.abi.decodeParameters(
     funcAbi.outputs,
