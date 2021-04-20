@@ -14,6 +14,7 @@ contract PCR {
         bytes32 insuredId;
         uint256 requestDate;
         uint256 resultDate;
+        address insuranceAddress;
     }
 
     address payable private owner;
@@ -22,7 +23,7 @@ contract PCR {
 
     PCRData private pcrData;
 
-    event pcrUpdate(bytes32 insuranceId, bytes32 pcrId,bytes32 result, uint256 resultDate);
+    event pcrUpdate(bytes32 insuranceId, bytes32 pcrId,bytes32 result, uint256 resultDate, address insuranceAddress);
 
     modifier notDeleted {
         require(!deleted, "This PCR has been deleted.");
@@ -34,8 +35,10 @@ contract PCR {
         bytes32 _id, 
         bytes32 _insuranceId,
         bytes32 _insuredId,
-        uint256 _requestDate
+        uint256 _requestDate,
+        address _insuranceAddress
     ) {
+        pcrData.insuranceAddress = _insuranceAddress;
         pcrData.requestDate = _requestDate;
         pcrData.insuredId = _insuredId;
         pcrData.insuranceId = _insuranceId;
@@ -54,7 +57,7 @@ contract PCR {
         completed = true;
         pcrData.result = _result;
         pcrData.resultDate = _resultDate;
-        emit pcrUpdate(pcrData.insuranceId, pcrData.id, pcrData.result, pcrData.resultDate);
+        emit pcrUpdate(pcrData.insuranceId, pcrData.id, pcrData.result, pcrData.resultDate, pcrData.insuranceAddress);
     }
 
     /// @notice Returns PCR data.
