@@ -15,9 +15,6 @@ const helpers = require('../../utils/helpers')
 
 const config = require('../../config')
 
-// FIXME: Si el controlador limpia todos los uuid, se podría eliminar el uso de esta función de limpieza
-const _cleanUuid = (uuid) => uuid.replace(/-/g, "")
-
 /**
  * register new insurance policy
  * Add a new insurance policy to the system
@@ -35,7 +32,7 @@ exports.addInsurancePolicy = function(body) {
         reject(new Error('Invalid data'))
       else {
         // check if insurance already exists
-        let insurance = await insurerModel.find({ id: _cleanUuid(body.id) })
+        let insurance = await insurerModel.find({ id: body.id })
         if (insurance.length > 0) {
           reject(new Error('Conflict'))
         }
@@ -68,12 +65,12 @@ exports.getAllInsurancePolicy = function() {
 exports.addPcrRequest = function(body, insuranceId) {
   return new Promise(async function(resolve, reject) {
     // check if insurance already exists
-    let insurance = await insurerModel.find({ id: _cleanUuid(insuranceId) })
+    let insurance = await insurerModel.find({ id: insuranceId })
     if (insurance.length !== 1)
       reject(new Error('Invalid data'))
     else {
         // check if pcrRequest already exists
-        let pcrReq = insurance[0].pcrRequests.find(p => p.id === _cleanUuid(body.id))
+        let pcrReq = insurance[0].pcrRequests.find(p => p.id === body.id)
         if (typeof pcrReq !== 'undefined') {
           //FIX: Mirar porque entra por aqui
           reject(new Error('Conflict'))
@@ -100,12 +97,12 @@ exports.addPcrRequest = function(body, insuranceId) {
  **/
 exports.getPcrRequest = function(insuranceId, pcrRequestId) {
   return new Promise(async function(resolve, reject) {
-    let insurance = await insurerModel.find({ id: _cleanUuid(insuranceId) })
+    let insurance = await insurerModel.find({ id: insuranceId })
     if (insurance.length !== 1)
       reject(new Error('Invalid data'))
     else {
       // check if pcrRequest already exists
-      let pcrReq = insurance[0].pcrRequests.find(p => p.id === _cleanUuid(pcrRequestId))
+      let pcrReq = insurance[0].pcrRequests.find(p => p.id === pcrRequestId)
       if (typeof pcrReq === 'undefined')
         reject(new Error('Invalid data'))
       else
@@ -125,17 +122,17 @@ exports.getPcrRequest = function(insuranceId, pcrRequestId) {
  **/
 exports.setResultPcrRequest = function(body, insuranceId, pcrRequestId, pcrRequestContractAddress) {
   return new Promise(async function(resolve, reject) {
-    let insurance = await insurerModel.find({ id: _cleanUuid(insuranceId) })
+    let insurance = await insurerModel.find({ id: insuranceId })
     if (insurance.length !== 1)
       reject(new Error('Invalid data'))
     else {
       // check if pcrRequest exists
-      let pcrReqIndex = insurance[0].pcrRequests.findIndex(p => p.id === _cleanUuid(pcrRequestId))
+      let pcrReqIndex = insurance[0].pcrRequests.findIndex(p => p.id === pcrRequestId)
       if (pcrReqIndex == -1)
         reject(new Error('Invalid data'))
       else {
         // update PCR Request
-        await insurerModel.updateOne({id: _cleanUuid(insuranceId), 'pcrRequests.id': _cleanUuid(pcrRequestId)}, {'$set': {
+        await insurerModel.updateOne({id: insuranceId, 'pcrRequests.id': pcrRequestId}, {'$set': {
           'pcrRequests.$.result': body.result,
           'pcrRequests.$.resultDate': (new Date()).toISOString()
         }})
@@ -157,19 +154,19 @@ exports.setResultPcrRequest = function(body, insuranceId, pcrRequestId, pcrReque
  */
 exports.deletePcrRequest = function(insuranceId, pcrRequestId) {
   return new Promise(async function(resolve, reject) {
-    let insurance = await insurerModel.find({ id: _cleanUuid(insuranceId) })
+    let insurance = await insurerModel.find({ id: insuranceId })
     if (insurance.length !== 1)
       reject(new Error('Invalid data'))
     else {
       // check if pcrRequest exists
-      let pcrReqIndex = insurance[0].pcrRequests.findIndex(p => p.id === _cleanUuid(pcrRequestId))
+      let pcrReqIndex = insurance[0].pcrRequests.findIndex(p => p.id === pcrRequestId)
       if (pcrReqIndex == -1)
         reject(new Error('Invalid data'))
       else {
         // delete PCR Request
-        await insurerModel.updateOne({id: _cleanUuid(insuranceId), 'pcrRequests.id': _cleanUuid(pcrRequestId)}, {
+        await insurerModel.updateOne({id: insuranceId, 'pcrRequests.id': pcrRequestId}, {
           '$pull': {
-            'pcrRequests': { id: _cleanUuid(pcrRequestId) }
+            'pcrRequests': { id: pcrRequestId }
           }
         })
 
@@ -188,7 +185,7 @@ exports.deletePcrRequest = function(insuranceId, pcrRequestId) {
  **/
 exports.checkPayment = function(insuranceId) {
   return new Promise(async function(resolve, reject) {
-    let insurance = await insurerModel.find({ id: _cleanUuid(insuranceId) })
+    let insurance = await insurerModel.find({ id: insuranceId })
     if (insurance.length !== 1)
       reject(new Error('Invalid data'))
     else {
