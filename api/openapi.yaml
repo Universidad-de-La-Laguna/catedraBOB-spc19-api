@@ -103,6 +103,12 @@ paths:
       summary: get a pcrRequest detail
       description: PCR request detail to client date
       operationId: getPcrRequest
+      parameters: 
+      - name: contractaddress
+        in: query
+        required: false
+        schema:
+          type: string
       responses:
         "200":
           description: PCR Request data

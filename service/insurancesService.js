@@ -307,7 +307,7 @@ async function addPCR(body, insuranceAddress, requestDate, pcrAddress) {
  * @param {String} pcrRequestId
  * @returns
  */
-async function getDataPCR(body, insuranceId, pcrRequestId) {
+async function getDataPCR(insuranceId, pcrRequestId, contractaddress) {
   let funcAbi,
     funcArguments,
     funcData,
@@ -326,9 +326,8 @@ async function getDataPCR(body, insuranceId, pcrRequestId) {
   } else {
     privateFrom = config.orion.laboratory.publicKey;
     funcAbi = await getFunctionAbi(PCRAbi, 'getPCRData');
-    if (body === undefined) throw "Undefined body";
-    if (body.contractaddress === undefined) throw "Undefined body";
-    contractAddress = body.contractaddress;
+    if (contractaddress === undefined) throw {code: 400, message: "Falta añadir el address del contrato PCR como querystring"};
+    contractAddress = contractaddress;
     funcData = funcAbi.signature;
     privateFor = [config.orion.taker.publicKey];
   }
@@ -658,10 +657,10 @@ exports.addPcrRequest = function (body, insuranceId) {
  * customerId CustomerId
  * returns PcrRequestItem
  **/
-exports.getPcrRequest = function (body, insuranceId, pcrRequestId) {
+exports.getPcrRequest = function (insuranceId, pcrRequestId, contractaddress) {
   return new Promise(async function (resolve, reject) {
     //TODO
-    getDataPCR(body, insuranceId, pcrRequestId)
+    getDataPCR(insuranceId, pcrRequestId, contractaddress)
       .then((result) => {
         console.log('PCR recuperada con éxito');
         resolve(result);

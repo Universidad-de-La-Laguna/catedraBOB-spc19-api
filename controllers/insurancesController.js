@@ -1,19 +1,19 @@
-"use strict";
+'use strict';
 
-var utils = require("../utils/writer.js");
-var insuranceService = require("../service/insurancesService");
-const config = require("../config");
-const { insuranceSchema } = require("./validations/insurance");
-const { pcrRequestSchema } = require("./validations/pcrRequest");
-const { uuidSchema } = require("./validations/common");
-const commonTransforms = require("./transforms/common");
-const insuranceTransforms = require("./transforms/insurance");
-const pcrRequestTransforms = require("./transforms/pcrRequest");
-const { ValidationError } = require("yup");
+var utils = require('../utils/writer.js');
+var insuranceService = require('../service/insurancesService');
+const config = require('../config');
+const { insuranceSchema } = require('./validations/insurance');
+const { pcrRequestSchema } = require('./validations/pcrRequest');
+const { uuidSchema } = require('./validations/common');
+const commonTransforms = require('./transforms/common');
+const insuranceTransforms = require('./transforms/insurance');
+const pcrRequestTransforms = require('./transforms/pcrRequest');
+const { ValidationError } = require('yup');
 
 function getErrorStatus(error) {
   if (error instanceof ValidationError) {
-    if (error.type === "required") {
+    if (error.type === 'required') {
       return 415;
     } else {
       return 400;
@@ -31,21 +31,21 @@ module.exports.addInsurancePolicy = async function addInsurancePolicy(
   next
 ) {
   try {
-    console.log("[INFO] New Insurance request");
-    console.log("[INFO] Validating new insurance request...");
+    console.log('[INFO] New Insurance request');
+    console.log('[INFO] Validating new insurance request...');
     insuranceTransforms.sortCustomersAndPcrs(req.body);
     const insuranceData = await insuranceSchema.validate(req.body);
     insuranceTransforms.cleanUuids(insuranceData);
 
-    console.log("[INFO] Success validating new insurance request");
-    console.log("[INFO] Sending request to the Backend...");
+    console.log('[INFO] Success validating new insurance request');
+    console.log('[INFO] Sending request to the Backend...');
     const response = await insuranceService.addInsurancePolicy(insuranceData);
 
-    console.log("[INFO] Success registering new insurance");
+    console.log('[INFO] Success registering new insurance');
     utils.writeJson(res, response, 201);
   } catch (error) {
     const statusCode = getErrorStatus(error);
-    console.error("[ERROR] %d: New insurance error: %O", statusCode, error);
+    console.error('[ERROR] %d: New insurance error: %O', statusCode, error);
     utils.writeJson(res, error, statusCode);
   }
 };
@@ -67,8 +67,8 @@ module.exports.getAllInsurancePolicy = function getAllInsurancePolicy(
 
 module.exports.addPcrRequest = async function addPcrRequest(req, res, next) {
   try {
-    console.log("[INFO] Add PCR request");
-    console.log("[INFO] Validating PCR request...");
+    console.log('[INFO] Add PCR request');
+    console.log('[INFO] Validating PCR request...');
 
     const pcrRequest = await pcrRequestSchema.validate(req.body);
     pcrRequestTransforms.cleanUuids(pcrRequest);
@@ -76,25 +76,29 @@ module.exports.addPcrRequest = async function addPcrRequest(req, res, next) {
     const _insuranceId = await uuidSchema.validate(req.params.insuranceId);
     const insuranceId = commonTransforms.cleanUuid(_insuranceId);
 
-    console.log("[INFO] Success validating add PCR request");
-    console.log("[INFO] Sending request to the Backend...");
+    console.log('[INFO] Success validating add PCR request');
+    console.log('[INFO] Sending request to the Backend...');
     const response = await insuranceService.addPcrRequest(
       pcrRequest,
       insuranceId
     );
 
-    console.log("[INFO] Success registering new PCR request");
+    console.log('[INFO] Success registering new PCR request');
     utils.writeJson(res, response, 201);
   } catch (error) {
     const statusCode = getErrorStatus(error);
-    console.error("[ERROR] %d: Add PCR Request error: %O", statusCode, error);
+    console.error('[ERROR] %d: Add PCR Request error: %O', statusCode, error);
     utils.writeJson(res, error, statusCode);
   }
 };
 
 module.exports.getPcrRequest = function getPcrRequest(req, res, next) {
   insuranceService
-    .getPcrRequest(req.params.insuranceId, req.params.pcrRequestId)
+    .getPcrRequest(
+      req.params.insuranceId,
+      req.params.pcrRequestId,
+      req.query.contractaddress
+    )
     .then(function (response) {
       utils.writeJson(res, response);
     })
