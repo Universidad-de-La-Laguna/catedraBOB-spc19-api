@@ -10,6 +10,7 @@ const commonTransforms = require('./transforms/common');
 const insuranceTransforms = require('./transforms/insurance');
 const pcrRequestTransforms = require('./transforms/pcrRequest');
 const { ValidationError } = require('yup');
+const { toUUID } = require('to-uuid')
 
 const cleanUuid = (uuid) => uuid.replace(/-/g, "");
 
@@ -164,6 +165,10 @@ module.exports.checkPayment = function checkPayment(req, res, next) {
       cleanUuid(req.params.insuranceId)
     )
     .then(function (response) {
+      // return a formatted uuid
+      if (response.insuranceId)
+        response.insuranceId = toUUID(response.insuranceId)
+
       utils.writeJson(res, response);
     })
     .catch(function (response) {
