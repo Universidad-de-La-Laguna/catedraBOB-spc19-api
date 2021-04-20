@@ -11,6 +11,8 @@ const insuranceTransforms = require('./transforms/insurance');
 const pcrRequestTransforms = require('./transforms/pcrRequest');
 const { ValidationError } = require('yup');
 
+const cleanUuid = (uuid) => uuid.replace(/-/g, "");
+
 function getErrorStatus(error) {
   if (error instanceof ValidationError) {
     if (error.type === 'required') {
@@ -95,8 +97,8 @@ module.exports.addPcrRequest = async function addPcrRequest(req, res, next) {
 module.exports.getPcrRequest = function getPcrRequest(req, res, next) {
   insuranceService
     .getPcrRequest(
-      req.params.insuranceId,
-      req.params.pcrRequestId,
+      cleanUuid(req.params.insuranceId),
+      cleanUuid(req.params.pcrRequestId),
       req.query.contractaddress
     )
     .then(function (response) {
@@ -120,8 +122,8 @@ module.exports.setResultPcrRequest = function setResultPcrRequest(
   insuranceService
     .setResultPcrRequest(
       req.body,
-      req.params.insuranceId,
-      req.params.pcrRequestId,
+      cleanUuid(req.params.insuranceId),
+      cleanUuid(req.params.pcrRequestId),
       req.query.contractaddress
     )
     .then(function (response) {
@@ -139,7 +141,10 @@ module.exports.setResultPcrRequest = function setResultPcrRequest(
 
 module.exports.deletePcrRequest = function deletePcrRequest(req, res, next) {
   insuranceService
-    .deletePcrRequest(req.params.insuranceId, req.params.pcrRequestId)
+    .deletePcrRequest(
+      cleanUuid(req.params.insuranceId),
+      cleanUuid(req.params.pcrRequestId)
+    )
     .then(function (response) {
       utils.writeJson(res, response);
     })
@@ -155,7 +160,9 @@ module.exports.deletePcrRequest = function deletePcrRequest(req, res, next) {
 
 module.exports.checkPayment = function checkPayment(req, res, next) {
   insuranceService
-    .checkPayment(req.params.insuranceId)
+    .checkPayment(
+      cleanUuid(req.params.insuranceId)
+    )
     .then(function (response) {
       utils.writeJson(res, response);
     })
