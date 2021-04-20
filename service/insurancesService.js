@@ -70,10 +70,8 @@ function createContract(bytecode, privFrom, privKey, privFor) {
     );
     if (hash.revertReason) {
       let error = Web3Utils.toAscii('0x' + hash.revertReason.slice(138));
-      console.log(
-        error
-      );
-      reject({code: "400", message: error});
+      console.log(error);
+      reject({ code: '400', message: error });
     }
     resolve(c);
   });
@@ -214,6 +212,7 @@ async function createInsurance(insuranceData) {
  * @returns {String} Address of the contract
  */
 async function createPCR(body, insuranceId, requestDate) {
+  let insuranceAddress = await getInsuranceAddressByInsuranceId(insuranceId);
   let constrAbi = PCRAbi[0];
   let constructorArguments = web3.eth.abi
     .encodeParameters(constrAbi.inputs, [
@@ -221,6 +220,7 @@ async function createPCR(body, insuranceId, requestDate) {
       Web3Utils.fromAscii(insuranceId),
       Web3Utils.fromAscii(body.customerId),
       requestDate,
+      insuranceAddress,
     ])
     .slice(2);
   let pcrContract = await createContract(
@@ -326,7 +326,11 @@ async function getDataPCR(insuranceId, pcrRequestId, contractaddress) {
   } else {
     privateFrom = config.orion.laboratory.publicKey;
     funcAbi = await getFunctionAbi(PCRAbi, 'getPCRData');
-    if (contractaddress === undefined) throw {code: 400, message: "Falta añadir el address del contrato PCR como querystring"};
+    if (contractaddress === undefined)
+      throw {
+        code: 400,
+        message: 'Falta añadir el address del contrato PCR como querystring',
+      };
     contractAddress = contractaddress;
     funcData = funcAbi.signature;
     privateFor = [config.orion.taker.publicKey];
@@ -398,12 +402,11 @@ async function updatePCR(
       transactionHash,
       config.orion.laboratory.publicKey
     );
+    console.log(result);
     if (result.revertReason) {
       let error = Web3Utils.toAscii('0x' + result.revertReason.slice(138));
-      console.log(
-        error
-      );
-      reject({code: "400", message: error});
+      console.log(error);
+      reject({ code: '400', message: error });
     }
     resolve(result);
   });
@@ -486,10 +489,8 @@ async function getAllInsurancePolicyHotel(body) {
   );
   if (result.revertReason) {
     let error = Web3Utils.toAscii('0x' + result.revertReason.slice(138));
-    console.log(
-      error
-    );
-    reject({code: "400", message: error});
+    console.log(error);
+    reject({ code: '400', message: error });
   }
   let resultData = await web3.eth.abi.decodeParameters(
     funcAbi.outputs,
