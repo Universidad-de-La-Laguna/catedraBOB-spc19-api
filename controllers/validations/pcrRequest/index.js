@@ -1,8 +1,9 @@
 const yup = require("yup");
+const { uuidSchema } = require("../common");
 
 const pcrRequestSchema = yup.object().shape({
-  id: yup.string().uuid().required(),
-  customerId: yup.string().uuid().required(),
+  id: uuidSchema,
+  customerId: uuidSchema,
 });
 
 module.exports = { pcrRequestSchema };
