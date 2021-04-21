@@ -15,20 +15,20 @@
     "version": 1
   },
   "evm": {
-    "assembly": "    /* \"Insurance.sol\":226:1988  contract Seriality {... */\n  mstore(0x40, 0x80)\n    /* \"Insurance.sol\":252:270  constructor () { } */\n  callvalue\n  dup1\n  iszero\n  tag_1\n  jumpi\n  0x00\n  dup1\n  revert\ntag_1:\n  pop\n    /* \"Insurance.sol\":226:1988  contract Seriality {... */\n  dataSize(sub_0)\n  dup1\n  dataOffset(sub_0)\n  0x00\n  codecopy\n  0x00\n  return\nstop\n\nsub_0: assembly {\n        /* \"Insurance.sol\":226:1988  contract Seriality {... */\n      mstore(0x40, 0x80)\n      0x00\n      dup1\n      revert\n\n    auxdata: 0xa2646970667358221220c44adfe4a4d3b246061c80cc56cc62665a8bff8dc2b9cd9e1c8ea81a58c29b0f64736f6c63430008030033\n}\n",
+    "assembly": "    /* \"Insurance.sol\":226:1988  contract Seriality {... */\n  mstore(0x40, 0x80)\n    /* \"Insurance.sol\":252:270  constructor () { } */\n  callvalue\n  dup1\n  iszero\n  tag_1\n  jumpi\n  0x00\n  dup1\n  revert\ntag_1:\n  pop\n    /* \"Insurance.sol\":226:1988  contract Seriality {... */\n  dataSize(sub_0)\n  dup1\n  dataOffset(sub_0)\n  0x00\n  codecopy\n  0x00\n  return\nstop\n\nsub_0: assembly {\n        /* \"Insurance.sol\":226:1988  contract Seriality {... */\n      mstore(0x40, 0x80)\n      0x00\n      dup1\n      revert\n\n    auxdata: 0xa2646970667358221220fa6d4e2eb9dcec6ce243472789c9185cd529be48b7f5e9fc18b5ae10f6fe348a64736f6c63430008030033\n}\n",
     "bytecode": {
       "generatedSources": [],
       "linkReferences": {},
-      "object": "6080604052348015600f57600080fd5b50603f80601d6000396000f3fe6080604052600080fdfea2646970667358221220c44adfe4a4d3b246061c80cc56cc62665a8bff8dc2b9cd9e1c8ea81a58c29b0f64736f6c63430008030033",
-      "opcodes": "PUSH1 0x80 PUSH1 0x40 MSTORE CALLVALUE DUP1 ISZERO PUSH1 0xF JUMPI PUSH1 0x0 DUP1 REVERT JUMPDEST POP PUSH1 0x3F DUP1 PUSH1 0x1D PUSH1 0x0 CODECOPY PUSH1 0x0 RETURN INVALID PUSH1 0x80 PUSH1 0x40 MSTORE PUSH1 0x0 DUP1 REVERT INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 0xC4 0x4A 0xDF 0xE4 LOG4 0xD3 0xB2 CHAINID MOD SHR DUP1 0xCC JUMP 0xCC PUSH3 0x665A8B SELFDESTRUCT DUP14 0xC2 0xB9 0xCD SWAP15 SHR DUP15 0xA8 BYTE PC 0xC2 SWAP12 0xF PUSH5 0x736F6C6343 STOP ADDMOD SUB STOP CALLER ",
+      "object": "6080604052348015600f57600080fd5b50603f80601d6000396000f3fe6080604052600080fdfea2646970667358221220fa6d4e2eb9dcec6ce243472789c9185cd529be48b7f5e9fc18b5ae10f6fe348a64736f6c63430008030033",
+      "opcodes": "PUSH1 0x80 PUSH1 0x40 MSTORE CALLVALUE DUP1 ISZERO PUSH1 0xF JUMPI PUSH1 0x0 DUP1 REVERT JUMPDEST POP PUSH1 0x3F DUP1 PUSH1 0x1D PUSH1 0x0 CODECOPY PUSH1 0x0 RETURN INVALID PUSH1 0x80 PUSH1 0x40 MSTORE PUSH1 0x0 DUP1 REVERT INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 STATICCALL PUSH14 0x4E2EB9DCEC6CE243472789C9185C 0xD5 0x29 0xBE 0x48 0xB7 CREATE2 0xE9 0xFC XOR 0xB5 0xAE LT 0xF6 INVALID CALLVALUE DUP11 PUSH5 0x736F6C6343 STOP ADDMOD SUB STOP CALLER ",
       "sourceMap": "226:1762:0:-:0;;;252:18;;;;;;;;;;226:1762;;;;;;"
     },
     "deployedBytecode": {
       "generatedSources": [],
       "immutableReferences": {},
       "linkReferences": {},
-      "object": "6080604052600080fdfea2646970667358221220c44adfe4a4d3b246061c80cc56cc62665a8bff8dc2b9cd9e1c8ea81a58c29b0f64736f6c63430008030033",
-      "opcodes": "PUSH1 0x80 PUSH1 0x40 MSTORE PUSH1 0x0 DUP1 REVERT INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 0xC4 0x4A 0xDF 0xE4 LOG4 0xD3 0xB2 CHAINID MOD SHR DUP1 0xCC JUMP 0xCC PUSH3 0x665A8B SELFDESTRUCT DUP14 0xC2 0xB9 0xCD SWAP15 SHR DUP15 0xA8 BYTE PC 0xC2 SWAP12 0xF PUSH5 0x736F6C6343 STOP ADDMOD SUB STOP CALLER ",
+      "object": "6080604052600080fdfea2646970667358221220fa6d4e2eb9dcec6ce243472789c9185cd529be48b7f5e9fc18b5ae10f6fe348a64736f6c63430008030033",
+      "opcodes": "PUSH1 0x80 PUSH1 0x40 MSTORE PUSH1 0x0 DUP1 REVERT INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 STATICCALL PUSH14 0x4E2EB9DCEC6CE243472789C9185C 0xD5 0x29 0xBE 0x48 0xB7 CREATE2 0xE9 0xFC XOR 0xB5 0xAE LT 0xF6 INVALID CALLVALUE DUP11 PUSH5 0x736F6C6343 STOP ADDMOD SUB STOP CALLER ",
       "sourceMap": "226:1762:0:-:0;;;;;"
     },
     "gasEstimates": {
@@ -188,7 +188,7 @@
       ],
       ".data": {
         "0": {
-          ".auxdata": "a2646970667358221220c44adfe4a4d3b246061c80cc56cc62665a8bff8dc2b9cd9e1c8ea81a58c29b0f64736f6c63430008030033",
+          ".auxdata": "a2646970667358221220fa6d4e2eb9dcec6ce243472789c9185cd529be48b7f5e9fc18b5ae10f6fe348a64736f6c63430008030033",
           ".code": [
             {
               "begin": 226,
@@ -238,7 +238,7 @@
   "ewasm": {
     "wasm": ""
   },
-  "metadata": "{\"compiler\":{\"version\":\"0.8.3+commit.8d00100c\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"}],\"devdoc\":{\"author\":\"pouladzade@gmail.com\",\"details\":\"The Seriality contract is the main interface for serializing data using the TypeToBytes, BytesToType and SizeOf\",\"kind\":\"dev\",\"methods\":{},\"title\":\"Seriality\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"Insurance.sol\":\"Seriality\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"Insurance.sol\":{\"keccak256\":\"0x0acebb03ea04f53f18060ca1988a724099e2d45bfdbd51eddd63bcb3484df690\",\"urls\":[\"bzz-raw://206f9e3b34497880dbcfc151f0870ffa1b1bdf0d41fe722070906e15a63f8907\",\"dweb:/ipfs/QmYV4ae7BoPMoV1LAffMFVTwdG881acg8B2uSnJqg61t1m\"]},\"PCR.sol\":{\"keccak256\":\"0xa4dbbbe152ea9d036513c584287a900ec9b3bc1a566ae822cd7334b67ecee836\",\"urls\":[\"bzz-raw://d0558f873ce7a0b8716f48b778b8f9b8a9c0f8701b1b1c8ea4802d0eeb8431eb\",\"dweb:/ipfs/Qmbet3RbwdouvyVfig5wRoqECDiX7BRAdg7p4hPpBpx2A1\"]}},\"version\":1}",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.3+commit.8d00100c\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"}],\"devdoc\":{\"author\":\"pouladzade@gmail.com\",\"details\":\"The Seriality contract is the main interface for serializing data using the TypeToBytes, BytesToType and SizeOf\",\"kind\":\"dev\",\"methods\":{},\"title\":\"Seriality\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"Insurance.sol\":\"Seriality\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"Insurance.sol\":{\"keccak256\":\"0x122ccfaf3e4bdf9e0941cbd2568f5d8fdfc7a1016b0cf1b636254b28abf72831\",\"urls\":[\"bzz-raw://341248292586b4276990cb4c2f97b491ec4f6490db436d0eff1e129771e66cbf\",\"dweb:/ipfs/QmVzRf74RVe5efB3cYBrxip8w9izBjL3Y2vd7NhcUFiDQs\"]},\"PCR.sol\":{\"keccak256\":\"0xa4dbbbe152ea9d036513c584287a900ec9b3bc1a566ae822cd7334b67ecee836\",\"urls\":[\"bzz-raw://d0558f873ce7a0b8716f48b778b8f9b8a9c0f8701b1b1c8ea4802d0eeb8431eb\",\"dweb:/ipfs/Qmbet3RbwdouvyVfig5wRoqECDiX7BRAdg7p4hPpBpx2A1\"]}},\"version\":1}",
   "storageLayout": {
     "storage": [],
     "types": null

@@ -137,7 +137,7 @@ contract Insurance is Seriality {
 
     ///  Events to emit the information about a sinister.
     event positivePcr(bytes32 customerId, uint256 resultDate, bytes32 insuranceId);
-    event checkPayment(bytes32 hotelId, bytes32 hotelIban);
+    event checkPayment(bytes32 takerId, bytes32 insuranceId);
 
     /// @notice Fill the information of taker data and insurance data.
     constructor(
