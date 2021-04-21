@@ -619,8 +619,8 @@ exports.addInsurancePolicy = function (body) {
         // TODO
         // Añadir el evento de checkpayment y el de positive PCR para mutua y hotel
         Promise.all(
-          datos[1].map((pcrInfoPair) => {
-            exports.addPcrRequest(pcrInfoPair, body.id);
+          datos[1].map(async (pcrInfoPair) => {
+            await exports.addPcrRequest(pcrInfoPair, body.id);
           })
         )
           .then((res) => {
