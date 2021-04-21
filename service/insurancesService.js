@@ -7,7 +7,7 @@ const EEAClient = require('web3-eea');
 const config = require('../config');
 const { deseriality, multipleDeseriality } = require('../scripts/deseriality');
 
-const mail = require('../helpers/mail-sender')
+const mail = require('../helpers/mail-sender');
 
 const chainId = 1337;
 const web3 = new EEAClient(new Web3(config.besu.thisnode.url), chainId);
@@ -39,10 +39,6 @@ const Spc19Abi = Spc19ContractJSON.abi;
 const insuranceBytecode = insuranceContractJSON.evm.bytecode.object;
 const PCRBytecode = PCRContractJSON.evm.bytecode.object;
 const Spc19Bytecode = Spc19ContractJSON.evm.bytecode.object;
-
-exports.setConfig = function(x) {
-  config.spc19ContractAddress.set(x);
-}
 
 /**
  * Crea un contrato con el bytecode elegido con las opciones elegidas
@@ -140,12 +136,19 @@ function insuranceDataObjectToArray(body) {
     insurancePrevPcrDate.push(
       parseInt(new Date(customer.negativePcrDate).getTime() / 1000)
     );
-  }
-  for (const pcrRequest of body.pcrRequests) {
     pcrIdCustomerIdPairs.push({
-      id: pcrRequest.id,
-      customerId: pcrRequest.customerId
+      customerFullName: customer.customerFullName,
+      customerEmail: customer.customerEmail,
+      customerTelephone: customer.customerTelephone,
     });
+  }
+  // for (const pcrRequest of body.pcrRequests) {
+  for (let i = 0; i < body.pcrRequests.length; i++) {
+    pcrIdCustomerIdPairs[i] = {
+      ...pcrIdCustomerIdPairs[i],
+      id: body.pcrRequests[i].id,
+      customerId: body.pcrRequests[i].customerId,
+    };
   }
   return [
     [
@@ -249,8 +252,20 @@ async function createPCR(body, insuranceId, requestDate) {
         ).then((pcrContract) => {
           getContractAddress(pcrContract, config.orion.taker.publicKey).then(
             (pcrAddress) => {
+              if (
+                body.customerFullName !== undefined &&
+                body.customerEmail !== undefined &&
+                body.customerTelephone !== undefined
+              ) {
+                // TODO
+                // Mandar mensaje con los datos del cliente
+              } else {
+                // TODO
+                // Mandar mensaje sin los datos del cliente
+                // O bien pasarle todo el body a la función sendEmailToLaboratory y que lo comprueben ahí
+              }
               // Notificamos al laboratorio por correo electrónico la creación de la solicitud de PCR
-              mail.sendEmailToLaboratory(insuranceId, body.id, pcrAddress)
+              mail.sendEmailToLaboratory(insuranceId, body.id, pcrAddress);
 
               resolve(pcrAddress);
             }
