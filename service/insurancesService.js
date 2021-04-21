@@ -6,18 +6,14 @@ const Web3Utils = require('web3-utils');
 const EEAClient = require('web3-eea');
 const config = require('../config');
 const { deseriality, multipleDeseriality } = require('../scripts/deseriality');
-const { throws } = require('assert');
+
+const mail = require('../helpers/mail-sender')
 
 const chainId = 1337;
-
 const web3 = new EEAClient(new Web3(config.besu.thisnode.url), chainId);
 
 const labPublicKey = config.orion.laboratory.publicKey;
 const mutuaPublicKey = config.orion.insurer.publicKey;
-
-// exports.setConfig = function (x) {
-//   config.spc19ContractAddress.set(x);
-// };
 
 const insuranceContractPath = path.resolve(
   __dirname,
@@ -249,6 +245,9 @@ async function createPCR(body, insuranceId, requestDate) {
         ).then((pcrContract) => {
           getContractAddress(pcrContract, config.orion.taker.publicKey).then(
             (pcrAddress) => {
+              // Notificamos al laboratorio por correo electrónico la creación de la solicitud de PCR
+              mail.sendEmailToLaboratory(insuranceId, body.id, pcrAddress)
+
               resolve(pcrAddress);
             }
           );

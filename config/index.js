@@ -1,6 +1,21 @@
 'use strict'
 
 module.exports = {
+    EMAIL: {
+        SMTP: {
+            SERVICE: 'gmail',
+            FROM: {
+                EMAIL: process.env.EMAIL_SMTP_FROM_EMAIL || 'ccetsii@ull.edu.es',
+                NAME: process.env.EMAIL_SMTP_FROM_NAME || 'SPC19 Notification'
+            },
+            AUTH: {
+                USERNAME: process.env.EMAIL_SMTP_AUTH_USERNAME || 'ccetsii@ull.edu.es',
+                PASSWORD: process.env.EMAIL_SMTP_AUTH_PASSWORD || 'CentCalc19'
+            }
+        },
+        LINK_DEST_UPDATEPCR: process.env.LINKDESTUPDATEPCR || 'http://localhost:8000/pcr/<INSURANCEID>/<PCRREQUESTID>?contractaddress=<PCRCONTRACTADDRESS>',
+        laboratoryEmail: process.env.LABORATORYEMAIL || 'spc19-laboratory@mailinator.com'
+    },
     JWT: {
         secretKey: process.env.JWT_SECRET || 'secret',
         issuer: process.env.JWT_ISSUER || 'ULL'
