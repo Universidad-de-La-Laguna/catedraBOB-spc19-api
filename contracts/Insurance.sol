@@ -135,7 +135,7 @@ contract Insurance is Seriality {
     uint256 private timePaymentEmitted;
 
     ///  Events to emit the information about a sinister.
-    event positivePcr(bytes32 customerId, uint256 resultDate);
+    event positivePcr(bytes32 customerId, uint256 resultDate, bytes32 insuranceId);
     event checkPayment(uint256 quantity, bytes32 hotelId, bytes32 hotelIban, bytes32 insuranceId);
 
     /// @notice Fill the information of taker data and insurance data.
@@ -244,7 +244,7 @@ contract Insurance is Seriality {
         pcrIdToData[_idPCR].resultDate = block.timestamp;
         if (_resultPCR == posPCR) {
             positivePcrTest = true;
-            emit positivePcr(insuredId, block.timestamp);
+            emit positivePcr(insuredId, block.timestamp, insuranceData.id);
             if (block.timestamp < insuranceData.insuranceFinishDate) {
                 compensation();
             }
