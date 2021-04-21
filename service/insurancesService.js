@@ -40,6 +40,10 @@ const insuranceBytecode = insuranceContractJSON.evm.bytecode.object;
 const PCRBytecode = PCRContractJSON.evm.bytecode.object;
 const Spc19Bytecode = Spc19ContractJSON.evm.bytecode.object;
 
+exports.setConfig = function(x) {
+  config.spc19ContractAddress.set(x);
+}
+
 /**
  * Crea un contrato con el bytecode elegido con las opciones elegidas
  * @param {String} bytecode
@@ -140,7 +144,7 @@ function insuranceDataObjectToArray(body) {
   for (const pcrRequest of body.pcrRequests) {
     pcrIdCustomerIdPairs.push({
       id: pcrRequest.id,
-      customerId: pcrRequest.customerId,
+      customerId: pcrRequest.customerId
     });
   }
   return [

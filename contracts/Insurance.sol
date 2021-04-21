@@ -85,6 +85,7 @@ contract Insurance is Seriality {
         uint256 insuranceFinishDate;
         uint256 contractDate;
         bytes32[] insureds;
+        uint256 sinisterCompensation;
     }
     
     /// @notice Struct that contains the taker information.
@@ -136,7 +137,7 @@ contract Insurance is Seriality {
 
     ///  Events to emit the information about a sinister.
     event positivePcr(bytes32 customerId, uint256 resultDate, bytes32 insuranceId);
-    event checkPayment(uint256 quantity, bytes32 hotelId, bytes32 hotelIban, bytes32 insuranceId);
+    event checkPayment(bytes32 hotelId, bytes32 hotelIban);
 
     /// @notice Fill the information of taker data and insurance data.
     constructor(
@@ -189,20 +190,14 @@ contract Insurance is Seriality {
         }
         insuranceData.insuredNumber = uint8(insuranceData.insureds.length);
         insuranceData.pcrNumber = 0;
-    }
-
-    /// @notice Returns the amount of the compensation.
-    /// @dev Returns only a fixed number.
-    function calculateCompensation() public view returns(uint256 amount) {
-        return insuranceData.dailyCompensation * insuranceData.daysToCompensate * insuranceData.insuredNumber;
+        insuranceData.sinisterCompensation = insuranceData.dailyCompensation * insuranceData.daysToCompensate * insuranceData.insuredNumber;
     }
 
     /// @notice Fires when the contract get a positive PCR.
     /// @dev Emit the sinister event.
     function compensation() public {
-        uint256 result = calculateCompensation();
         if (positivePcrTest && !paymentEmitted) {
-            emit checkPayment(result, takerData.takerId, takerData.takerIban, insuranceData.id);
+            emit checkPayment(takerData.takerId, insuranceData.id);
             paymentEmitted = true;
             timePaymentEmitted = block.timestamp;
         }
@@ -347,7 +342,7 @@ contract Insurance is Seriality {
 
         uint256 offset = (
             4 + // 2 uint16 
-            96 + // 2 uint256 and 1 bytes32 Insurance Info
+            128 + // 2 uint256 and 1 bytes32 Insurance Info
             (32 * insuranceData.insuredNumber) +  // ids of insureds
             (32 * insuranceData.insuredNumber * 2) + // negative previous PCR hash and date 
             (32 * 9) + //bytes32 of takerData
@@ -363,6 +358,10 @@ contract Insurance is Seriality {
         // Insurance Info
         // serialize Insurance ID
         bytes32ToBytes(offset, insuranceData.id, _serializedInsurance);
+        offset -= 32;
+
+        // serialize sinister compensation
+        uintToBytes(offset, insuranceData.sinisterCompensation, _serializedInsurance);
         offset -= 32;
 
         // serialize Insurance Start Date

@@ -14,6 +14,8 @@ const deseriality = (data, newOffset) => {
     insurance['id'] = Web3Utils.toUtf8('0x' + data.slice(offset - 64, offset));
   }
   offset -= 64;
+  insurance['sinisterCompensation'] = parseInt(data.slice(offset - 64, offset), 16);
+  offset -= 64;
   insurance['startDate'] = new Date(parseInt(data.slice(offset - 64, offset), 16) * 1000).toISOString();
   offset -= 64;
   insurance['finishDate'] = new Date(parseInt(data.slice(offset - 64, offset), 16) * 1000).toISOString();
