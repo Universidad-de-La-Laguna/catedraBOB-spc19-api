@@ -31,19 +31,30 @@ function sendEmail(email, subject, text, html) {
     })
 }
 
-function sendEmailToLaboratory(insuranceId, pcrRequestId, pcrContractAddress) {
+function sendEmailToLaboratory(insuranceId, pcrRequestId, pcrContractAddress, customerData) {
     //personalizar el link dependiendo del proveedor y la direccion del contrato
     let link = config.EMAIL.LINK_DEST_UPDATEPCR
     link = link.replace('<INSURANCEID>', insuranceId)
     link = link.replace('<PCRREQUESTID>', pcrRequestId)
     link = link.replace('<PCRCONTRACTADDRESS>', pcrContractAddress)
 
+    let emailText = `Hola,\nSe ha creado una nueva solicitud de PCR asociada al cliente con identificador ${customerData.customerId}.\nPara actualizarla pulsa en el siguiente enlace ${link}\n`
+    let emailHtml = `<p>Hola, <br><br>Se ha creado una nueva solicitud de PCR asociada al cliente con identificador ${customerData.customerId}. Para actualizarla pulsa en el siguiente <a href="${link}">enlace</a>.</p><p>Si el enlace no le funciona, puede copiar la siguiente URL en su navegador:<br><br>${link}</p>`
+    let emailSubject = "Nueva PCR para cliente ya existente"
+
+    // Si vienen datos personales del cliente, los incluyo
+    if (customerData.customerFullName) {
+        emailSubject = "Nueva solicitud de PCR"
+        emailText += `Los datos del cliente son los siguientes:\n   - Nombre: ${customerData.customerFullName}\n   - Teléfono: ${customerData.customerEmail}\n   - Email: ${customerData.customerTelephone}`
+        emailHtml += `<p>Los datos del cliente son los siguientes:<br><br><ul><li>Nombre: ${customerData.customerFullName}</li><li>Tel&eacute;fono: ${customerData.customerEmail}</li><li>Email: ${customerData.customerTelephone}</li></ul>`
+    }
+
     // send email
     sendEmail(
         config.EMAIL.laboratoryEmail,
-        'Nueva solicitud de PCR',
-        `Hola,\nSe ha creado una nueva solicitud de PCR.\nPara actualizarla pulsa en el siguiente enlace ${link}`,
-        `<p>Hola, <br><br>Se ha creado una nueva solicitud de PCR. Para actualizarla pulsa en el siguiente <a href="${link}">enlace</a>.</p><p>Si el enlace no le funciona, puede copiar la siguiente URL en su navegador:<br><br>${link}</p>`
+        emailSubject,
+        emailText,
+        emailHtml
     )
 }
 

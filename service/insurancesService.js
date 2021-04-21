@@ -257,15 +257,29 @@ async function createPCR(body, insuranceId, requestDate) {
                 body.customerEmail !== undefined &&
                 body.customerTelephone !== undefined
               ) {
-                // TODO
                 // Mandar mensaje con los datos del cliente
+                mail.sendEmailToLaboratory(
+                  insuranceId, 
+                  body.id, 
+                  pcrAddress, 
+                  {
+                    customerId: body.customerId,
+                    customerFullName: body.customerFullName,
+                    customerEmail: body.customerEmail,
+                    customerTelephone: body.customerTelephone
+                  }
+                )
               } else {
-                // TODO
                 // Mandar mensaje sin los datos del cliente
-                // O bien pasarle todo el body a la función sendEmailToLaboratory y que lo comprueben ahí
+                mail.sendEmailToLaboratory(
+                  insuranceId,
+                  body.id,
+                  pcrAddress,
+                  {
+                    customerId: body.customerId
+                  }
+                )
               }
-              // Notificamos al laboratorio por correo electrónico la creación de la solicitud de PCR
-              mail.sendEmailToLaboratory(insuranceId, body.id, pcrAddress);
 
               resolve(pcrAddress);
             }
