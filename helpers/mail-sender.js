@@ -1,8 +1,9 @@
 const nodemailer = require('nodemailer')
 const config = require('../config')
+const { logger } = require("../utils/logger")
 
 function sendEmail(email, subject, text, html) {
-    console.log(`Sending validation email to ${email} with subject '${subject}'`)
+    logger.info(`Sending validation email to ${email} with subject '${subject}'`)
 
     // create reusable transporter object using the default SMTP transport
     let transporter = nodemailer.createTransport({
@@ -25,9 +26,10 @@ function sendEmail(email, subject, text, html) {
     // send mail with defined transport object
     transporter.sendMail(mailOptions, (error, info) => {
         if (error) {
-            return console.log(error);
+            logger.error(error);
+            return 
         }
-        console.log('Message sent: %s', info.messageId)
+        logger.info('Message sent: %s', info.messageId)
     })
 }
 

@@ -6,7 +6,7 @@ const Web3Utils = require('web3-utils');
 const EEAClient = require('web3-eea');
 const config = require('../config');
 const { deseriality, multipleDeseriality } = require('../scripts/deseriality');
-
+const { logger } = require("../utils/logger")
 const mail = require('../helpers/mail-sender');
 
 const chainId = 1337;
@@ -58,7 +58,7 @@ function createContract(bytecode, privFrom, privKey, privFor) {
       privateFor: privFor, // [orion.member3.publicKey],
       privateKey: privKey, // besu.member1.privateKey
     };
-    console.log('Creating contract...');
+    logger.info('Creating contract...');
     const c = await web3.eea.sendRawTransaction(contractOptions);
     let hash = await web3.priv.getTransactionReceipt(
       c,
@@ -66,7 +66,7 @@ function createContract(bytecode, privFrom, privKey, privFor) {
     );
     if (hash.revertReason) {
       let error = Web3Utils.toAscii('0x' + hash.revertReason.slice(138));
-      console.log(error);
+      logger.error(error);
       reject({ code: '400', message: error });
     }
     resolve(c);
@@ -96,12 +96,12 @@ async function getFunctionAbi(abi, functionName) {
  * @returns {String} Dirección del contrato
  */
 async function getContractAddress(transactionHash, pubKey) {
-  console.log('Getting contractAddress from txHash: ', transactionHash);
+  logger.info('Getting contractAddress from txHash: ', transactionHash);
   const privateTransactionReceipt = await web3.priv.getTransactionReceipt(
     transactionHash,
     pubKey
   );
-  console.log(`Private Transaction Receipt: ${privateTransactionReceipt}`);
+  logger.info(`Private Transaction Receipt: ${privateTransactionReceipt}`);
   return privateTransactionReceipt.contractAddress;
 }
 
@@ -203,14 +203,14 @@ async function createInsurance(insuranceData) {
       privateKey: config.besu.thisnode.privateKey,
     };
     let transactionHash = await web3.eea.sendRawTransaction(functionParams);
-    console.log(`Transaction hash: ${transactionHash}`);
+    logger.info(`Transaction hash: ${transactionHash}`);
     let result = await web3.priv.getTransactionReceipt(
       transactionHash,
       config.orion.taker.publicKey
     );
     if (result.revertReason) {
       let error = Web3Utils.toAscii('0x' + result.revertReason.slice(138));
-      console.log(error);
+      logger.error(error);
       reject({ code: '400', message: error });
     }
     resolve(insuranceAddress);
@@ -311,14 +311,14 @@ async function getInsuranceAddressByInsuranceId(insuranceId) {
       privateKey: config.besu.thisnode.privateKey,
     };
     let transactionHash = await web3.eea.sendRawTransaction(functionParams);
-    console.log(`Transaction hash: ${transactionHash}`);
+    logger.info(`Transaction hash: ${transactionHash}`);
     let result = await web3.priv.getTransactionReceipt(
       transactionHash,
       config.orion.taker.publicKey
     );
     if (result.revertReason) {
       let error = Web3Utils.toAscii('0x' + result.revertReason.slice(138));
-      console.log(error);
+      logger.error(error);
       reject({ code: '400', message: error });
     }
     let resultData = await web3.eth.abi.decodeParameters(
@@ -356,14 +356,14 @@ async function addPCR(body, insuranceAddress, requestDate, pcrAddress) {
       privateKey: config.besu.thisnode.privateKey,
     };
     let transactionHash = await web3.eea.sendRawTransaction(functionParams);
-    console.log(`Transaction hash: ${transactionHash}`);
+    logger.info(`Transaction hash: ${transactionHash}`);
     let result = await web3.priv.getTransactionReceipt(
       transactionHash,
       config.orion.taker.publicKey
     );
     if (result.revertReason) {
       let error = Web3Utils.toAscii('0x' + result.revertReason.slice(138));
-      console.log(error);
+      logger.error(error);
       reject({ code: '400', message: error });
     }
     resolve(result);
@@ -405,14 +405,14 @@ async function getDataPCR(insuranceId, pcrRequestId, contractaddress) {
       privateKey: config.besu.thisnode.privateKey,
     };
     let transactionHash = await web3.eea.sendRawTransaction(functionParams);
-    console.log(`Transaction hash: ${transactionHash}`);
+    logger.info(`Transaction hash: ${transactionHash}`);
     let result = await web3.priv.getTransactionReceipt(
       transactionHash,
       config.orion.taker.publicKey
     );
     if (result.revertReason) {
       let error = Web3Utils.toAscii('0x' + result.revertReason.slice(138));
-      console.log(error);
+      logger.error(error);
       reject({ code: '400', message: error });
     }
     let resultData = await web3.eth.abi.decodeParameters(
@@ -430,7 +430,7 @@ async function getDataPCR(insuranceId, pcrRequestId, contractaddress) {
     if (resultData['3'] === '0') {
       pcrInfo.resultDate = 'UNDEFINED';
     }
-    console.log(pcrInfo);
+    logger.info(pcrInfo);
     resolve(pcrInfo);
   });
 }
@@ -474,14 +474,14 @@ async function updatePCR(
       privateKey: config.besu.thisnode.privateKey,
     };
     let transactionHash = await web3.eea.sendRawTransaction(functionParams);
-    console.log(`Transaction hash: ${transactionHash}`);
+    logger.info(`Transaction hash: ${transactionHash}`);
     let result = await web3.priv.getTransactionReceipt(
       transactionHash,
       config.orion.laboratory.publicKey
     );
     if (result.revertReason) {
       let error = Web3Utils.toAscii('0x' + result.revertReason.slice(138));
-      console.log(error);
+      logger.error(error);
       reject({ code: '400', message: error });
     }
     resolve(result);
@@ -512,14 +512,14 @@ async function deletePCRInsurance(insuranceId, pcrRequestId) {
       privateKey: config.besu.thisnode.privateKey,
     };
     let transactionHash = await web3.eea.sendRawTransaction(functionParams);
-    console.log(`Transaction hash: ${transactionHash}`);
+    logger.info(`Transaction hash: ${transactionHash}`);
     let result = await web3.priv.getTransactionReceipt(
       transactionHash,
       config.orion.taker.publicKey
     );
     if (result.revertReason) {
       let error = Web3Utils.toAscii('0x' + result.revertReason.slice(138));
-      console.log(error);
+      logger.error(error);
       reject({ code: '400', message: error });
     }
     let resultData = await web3.eth.abi.decodeParameters(
@@ -546,14 +546,14 @@ async function deletePCR(contractaddress) {
       privateKey: config.besu.thisnode.privateKey,
     };
     let transactionHash = await web3.eea.sendRawTransaction(functionParams);
-    console.log(`Transaction hash: ${transactionHash}`);
+    logger.info(`Transaction hash: ${transactionHash}`);
     let result = await web3.priv.getTransactionReceipt(
       transactionHash,
       config.orion.taker.publicKey
     );
     if (result.revertReason) {
       let error = Web3Utils.toAscii('0x' + result.revertReason.slice(138));
-      console.log(error);
+      logger.error(error);
       reject({ code: '400', message: error });
     }
     resolve(result);
@@ -576,15 +576,15 @@ async function getAllInsurancePolicyHotel(body) {
       privateKey: config.besu.thisnode.privateKey,
     };
     let transactionHash = await web3.eea.sendRawTransaction(functionParams);
-    console.log(`Transaction hash: ${transactionHash}`);
+    logger.info(`Transaction hash: ${transactionHash}`);
     let result = await web3.priv.getTransactionReceipt(
       transactionHash,
       config.orion.taker.publicKey
     );
-    console.log(result);
+    logger.info(result);
     if (result.revertReason) {
       let error = Web3Utils.toAscii('0x' + result.revertReason.slice(138));
-      console.log(error);
+      logger.error(error);
       reject({ code: '400', message: error });
     }
     let resultData = await web3.eth.abi.decodeParameters(
@@ -592,7 +592,7 @@ async function getAllInsurancePolicyHotel(body) {
       result.output
     );
     let insurancesData = multipleDeseriality(resultData[0]);
-    console.log(insurancesData);
+    logger.info(insurancesData);
     resolve(insurancesData);
   });
 }
@@ -615,14 +615,14 @@ async function getAllInsurancePolicyMutua(body) {
       privateKey: config.besu.thisnode.privateKey,
     };
     let transactionHash = await web3.eea.sendRawTransaction(functionParams);
-    console.log(`Transaction hash: ${transactionHash}`);
+    logger.info(`Transaction hash: ${transactionHash}`);
     let result = await web3.priv.getTransactionReceipt(
       transactionHash,
       mutuaPublicKey
     );
     if (result.revertReason) {
       let error = Web3Utils.toAscii('0x' + result.revertReason.slice(138));
-      console.log(error);
+      logger.error(error);
       reject({ code: '400', message: error });
     }
     let resultData = await web3.eth.abi.decodeParameters(
@@ -631,7 +631,7 @@ async function getAllInsurancePolicyMutua(body) {
     );
     let insurancesData = multipleDeseriality(resultData[0]);
     insurancesTotalData = insurancesTotalData.concat(insurancesData);
-    console.log(insurancesTotalData);
+    logger.info(insurancesTotalData);
     resolve(insurancesTotalData);
   });
 }
@@ -657,18 +657,18 @@ exports.addInsurancePolicy = function (body) {
           })
         )
           .then((res) => {
-            console.log(
+            logger.info(
               `Poliza añadida correctamente, address: ${hotelInsuranceAddress}`
             );
             resolve();
           })
           .catch((error) => {
-            console.log('Error al crear las PCR correspondientes', error);
+            logger.error('Error al crear las PCR correspondientes', error);
             reject(error);
           });
       })
       .catch((error) => {
-        console.log('Error al crear la póliza', error);
+        logger.error('Error al crear la póliza', error);
         reject(error);
       });
   });
@@ -688,21 +688,21 @@ exports.getAllInsurancePolicy = function (body) {
     if (config.businessParams.nodeRole === 'taker') {
       getAllInsurancePolicyHotel(body)
         .then((res) => {
-          console.log('Pólizas recuperadas con éxito');
+          logger.info('Pólizas recuperadas con éxito');
           resolve(res);
         })
         .catch((error) => {
-          console.log('Error obteniendo polizas de hotel: ', error);
+          logger.error('Error obteniendo polizas de hotel: ', error);
           reject(error);
         });
     } else if (config.businessParams.nodeRole === 'insurer') {
       getAllInsurancePolicyMutua(body)
         .then((res) => {
-          console.log('Pólizas recuperadas con éxito');
+          logger.info('Pólizas recuperadas con éxito');
           resolve(res);
         })
         .catch((error) => {
-          console.log('Error obteniendo polizas de Mutua: ', error);
+          logger.error('Error obteniendo polizas de Mutua: ', error);
           reject(error);
         });
     } else {
@@ -729,7 +729,7 @@ exports.addPcrRequest = function (body, insuranceId) {
     // Create PCR
     createPCR(body, insuranceId, requestDate)
       .catch((error) => {
-        console.log('Error al crear contrato PCR: ', error);
+        logger.error('Error al crear contrato PCR: ', error);
         reject(error);
       })
       .then((pcrAddress) => {
@@ -737,7 +737,7 @@ exports.addPcrRequest = function (body, insuranceId) {
           (insuranceAddress) => {
             addPCR(body, insuranceAddress, requestDate, pcrAddress).then(
               (res) => {
-                console.log('PCR Añadida con éxito, address: ', pcrAddress);
+                logger.info('PCR Añadida con éxito, address: ', pcrAddress);
                 resolve();
               }
             );
@@ -745,7 +745,7 @@ exports.addPcrRequest = function (body, insuranceId) {
         );
       })
       .catch((error) => {
-        console.log('Error al añadir PCR a póliza: ', error);
+        logger.error('Error al añadir PCR a póliza: ', error);
         reject(error);
       });
   });
@@ -763,11 +763,11 @@ exports.getPcrRequest = function (insuranceId, pcrRequestId, contractaddress) {
     //TODO
     getDataPCR(insuranceId, pcrRequestId, contractaddress)
       .then((result) => {
-        console.log('PCR recuperada con éxito');
+        logger.info('PCR recuperada con éxito');
         resolve(result);
       })
       .catch((error) => {
-        console.log('Obtener datos de PCR ha fallado: ', error);
+        logger.error('Obtener datos de PCR ha fallado: ', error);
         reject(error);
       });
   });
@@ -794,11 +794,11 @@ exports.setResultPcrRequest = function (
     const resultDate = parseInt(new Date().getTime() / 1000);
     updatePCR(body, insuranceId, pcrRequestId, contractaddress, resultDate)
       .then((res) => {
-        console.log('PCR actualizada');
+        logger.info('PCR actualizada');
         resolve();
       })
       .catch((error) => {
-        console.log('Error al actualizar PCR: ', error);
+        logger.error('Error al actualizar PCR: ', error);
         reject(error);
       });
   });
@@ -820,16 +820,16 @@ exports.deletePcrRequest = function (insuranceId, pcrRequestId) {
       .then((contractadress) => {
         deletePCR(contractadress)
           .then(() => {
-            console.log('PCR eliminada con éxito');
+            logger.info('PCR eliminada con éxito');
             resolve();
           })
           .catch((error) => {
-            console.log('Error al borrar PCR en contrato PCR: ', error);
+            logger.error('Error al borrar PCR en contrato PCR: ', error);
             reject(error);
           });
       })
       .catch((error) => {
-        console.log('Error al borrar PCR en la póliza: ', error);
+        logger.error('Error al borrar PCR en la póliza: ', error);
         reject(error);
       });
   });

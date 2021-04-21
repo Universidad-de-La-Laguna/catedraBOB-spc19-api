@@ -3,6 +3,7 @@ const fs = require('fs-extra');
 const Web3 = require('web3');
 const EEAClient = require('web3-eea');
 const config = require('../config')
+const { logger } = require("../utils/logger")
 
 const chainId = 1337;
 const web3Mutua = new EEAClient(new Web3(config.besu.thisnode.url), chainId);
@@ -25,19 +26,19 @@ async function createSPC19Contract(privateFrom, privateForItem, privateKey) {
     privateFor: [privateForItem],
     privateKey
   };
-  console.log('Creating contract...');
+  logger.info('Creating contract...');
   const c = await web3Mutua.eea.sendRawTransaction(contractOptions);
   return c;
 }
 
 // get address of contract
 async function getContractAddress(transactionHash, nodePublicKey) {
-  console.log('Getting contractAddress from txHash: ', transactionHash)
+  logger.info('Getting contractAddress from txHash: %s', transactionHash)
   const privateTransactionReceipt = await web3Mutua.priv.getTransactionReceipt(
     transactionHash,
     nodePublicKey
   )
-  // console.log(`Private Transaction Receipt: ${JSON.stringify(privateTransactionReceipt)}`);
+  // logger.info(`Private Transaction Receipt: ${JSON.stringify(privateTransactionReceipt)}`);
   return privateTransactionReceipt.contractAddress
 }
 
@@ -50,6 +51,6 @@ exports.deployGeneralContracts = async function (takerPublicKey, insurerPublicKe
   let spcHotelContract = await createSPC19Contract(takerPublicKey, insurerPublicKey, takerPrivateKey)
   let contractAddressDeployed = await getContractAddress(spcHotelContract, takerPublicKey)
   
-  console.info(`Deployed SPC19 contract address: ${contractAddressDeployed}`)
+  logger.info("Deployed SPC19 contract address: %s", contractAddressDeployed)
   return contractAddressDeployed
 }

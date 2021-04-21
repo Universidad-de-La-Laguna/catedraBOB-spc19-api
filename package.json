@@ -6,7 +6,7 @@
   "scripts": {
     "test": "npx jest --runInBand ./test",
     "start": "node index.js | pino-pretty -c -t",
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js | pino-pretty -c -t"
   },
   "keywords": [
     "swagger"
