@@ -212,28 +212,36 @@ async function createInsurance(insuranceData) {
  * @returns {String} Address of the contract
  */
 async function createPCR(body, insuranceId, requestDate) {
-  let insuranceAddress = await getInsuranceAddressByInsuranceId(insuranceId);
-  let constrAbi = PCRAbi[0];
-  let constructorArguments = web3.eth.abi
-    .encodeParameters(constrAbi.inputs, [
-      Web3Utils.fromAscii(body.id),
-      Web3Utils.fromAscii(insuranceId),
-      Web3Utils.fromAscii(body.customerId),
-      requestDate,
-      insuranceAddress,
-    ])
-    .slice(2);
-  let pcrContract = await createContract(
-    PCRBytecode + constructorArguments,
-    config.orion.taker.publicKey,
-    config.besu.thisnode.privateKey,
-    [labPublicKey]
-  );
-  let pcrAddress = await getContractAddress(
-    pcrContract,
-    config.orion.taker.publicKey
-  );
-  return pcrAddress;
+  return new Promise(async function (resolve, reject) {
+    getInsuranceAddressByInsuranceId(insuranceId)
+      .then((insuranceAddress) => {
+        let constrAbi = PCRAbi[0];
+        let constructorArguments = web3.eth.abi
+          .encodeParameters(constrAbi.inputs, [
+            Web3Utils.fromAscii(body.id),
+            Web3Utils.fromAscii(insuranceId),
+            Web3Utils.fromAscii(body.customerId),
+            requestDate,
+            insuranceAddress,
+          ])
+          .slice(2);
+        createContract(
+          PCRBytecode + constructorArguments,
+          config.orion.taker.publicKey,
+          config.besu.thisnode.privateKey,
+          [labPublicKey]
+        ).then((pcrContract) => {
+          getContractAddress(pcrContract, config.orion.taker.publicKey).then(
+            (pcrAddress) => {
+              resolve(pcrAddress);
+            }
+          );
+        });
+      })
+      .catch((error) => {
+        reject(error);
+      });
+  });
 }
 
 /**
@@ -242,28 +250,35 @@ async function createPCR(body, insuranceId, requestDate) {
  * @returns {String} address del contrato póliza
  */
 async function getInsuranceAddressByInsuranceId(insuranceId) {
-  let funcAbi = await getFunctionAbi(Spc19Abi, 'getAddressOfInsurance');
-  let funcArguments = web3.eth.abi
-    .encodeParameters(funcAbi.inputs, [Web3Utils.fromAscii(insuranceId)])
-    .slice(2);
-  let functionParams = {
-    to: config.spc19ContractAddress.value(),
-    data: funcAbi.signature + funcArguments,
-    privateFrom: config.orion.taker.publicKey,
-    privateFor: [mutuaPublicKey],
-    privateKey: config.besu.thisnode.privateKey,
-  };
-  let transactionHash = await web3.eea.sendRawTransaction(functionParams);
-  console.log(`Transaction hash: ${transactionHash}`);
-  let result = await web3.priv.getTransactionReceipt(
-    transactionHash,
-    config.orion.taker.publicKey
-  );
-  let resultData = await web3.eth.abi.decodeParameters(
-    funcAbi.outputs,
-    result.output
-  );
-  return resultData[0];
+  return new Promise(async function (resolve, reject) {
+    let funcAbi = await getFunctionAbi(Spc19Abi, 'getAddressOfInsurance');
+    let funcArguments = web3.eth.abi
+      .encodeParameters(funcAbi.inputs, [Web3Utils.fromAscii(insuranceId)])
+      .slice(2);
+    let functionParams = {
+      to: config.spc19ContractAddress.value(),
+      data: funcAbi.signature + funcArguments,
+      privateFrom: config.orion.taker.publicKey,
+      privateFor: [mutuaPublicKey],
+      privateKey: config.besu.thisnode.privateKey,
+    };
+    let transactionHash = await web3.eea.sendRawTransaction(functionParams);
+    console.log(`Transaction hash: ${transactionHash}`);
+    let result = await web3.priv.getTransactionReceipt(
+      transactionHash,
+      config.orion.taker.publicKey
+    );
+    if (result.revertReason) {
+      let error = Web3Utils.toAscii('0x' + result.revertReason.slice(138));
+      console.log(error);
+      reject({ code: '400', message: error });
+    }
+    let resultData = await web3.eth.abi.decodeParameters(
+      funcAbi.outputs,
+      result.output
+    );
+    resolve(resultData[0]);
+  });
 }
 
 /**
@@ -275,29 +290,36 @@ async function getInsuranceAddressByInsuranceId(insuranceId) {
  * @returns Hash of the transaction
  */
 async function addPCR(body, insuranceAddress, requestDate, pcrAddress) {
-  let funcAbi = await getFunctionAbi(insuranceAbi, 'addPCRtoInsured');
-  let funcArguments = web3.eth.abi
-    .encodeParameters(funcAbi.inputs, [
-      Web3Utils.fromAscii(body.customerId),
-      Web3Utils.fromAscii(body.id),
-      requestDate,
-      pcrAddress,
-    ])
-    .slice(2);
-  let functionParams = {
-    to: insuranceAddress,
-    data: funcAbi.signature + funcArguments,
-    privateFrom: config.orion.taker.publicKey,
-    privateFor: [mutuaPublicKey],
-    privateKey: config.besu.thisnode.privateKey,
-  };
-  let transactionHash = await web3.eea.sendRawTransaction(functionParams);
-  console.log(`Transaction hash: ${transactionHash}`);
-  let result = await web3.priv.getTransactionReceipt(
-    transactionHash,
-    config.orion.taker.publicKey
-  );
-  return result;
+  return new Promise(async function (resolve, reject) {
+    let funcAbi = await getFunctionAbi(insuranceAbi, 'addPCRtoInsured');
+    let funcArguments = web3.eth.abi
+      .encodeParameters(funcAbi.inputs, [
+        Web3Utils.fromAscii(body.customerId),
+        Web3Utils.fromAscii(body.id),
+        requestDate,
+        pcrAddress,
+      ])
+      .slice(2);
+    let functionParams = {
+      to: insuranceAddress,
+      data: funcAbi.signature + funcArguments,
+      privateFrom: config.orion.taker.publicKey,
+      privateFor: [mutuaPublicKey],
+      privateKey: config.besu.thisnode.privateKey,
+    };
+    let transactionHash = await web3.eea.sendRawTransaction(functionParams);
+    console.log(`Transaction hash: ${transactionHash}`);
+    let result = await web3.priv.getTransactionReceipt(
+      transactionHash,
+      config.orion.taker.publicKey
+    );
+    if (result.revertReason) {
+      let error = Web3Utils.toAscii('0x' + result.revertReason.slice(138));
+      console.log(error);
+      reject({ code: '400', message: error });
+    }
+    resolve(result);
+  });
 }
 
 /**
@@ -308,60 +330,71 @@ async function addPCR(body, insuranceAddress, requestDate, pcrAddress) {
  * @returns
  */
 async function getDataPCR(insuranceId, pcrRequestId, contractaddress) {
-  let funcAbi,
-    funcArguments,
-    funcData,
-    contractAddress,
-    privateFor,
-    privateFrom;
-  if (config.businessParams.nodeRole !== 'laboratory') {
-    privateFrom = config.orion.taker.publicKey;
-    funcAbi = await getFunctionAbi(insuranceAbi, 'getPCR');
-    funcArguments = web3.eth.abi
-      .encodeParameters(funcAbi.inputs, [Web3Utils.fromAscii(pcrRequestId)])
-      .slice(2);
-    contractAddress = await getInsuranceAddressByInsuranceId(insuranceId);
-    funcData = funcAbi.signature + funcArguments;
-    privateFor = [mutuaPublicKey];
-  } else {
-    privateFrom = config.orion.laboratory.publicKey;
-    funcAbi = await getFunctionAbi(PCRAbi, 'getPCRData');
-    if (contractaddress === undefined)
-      throw {
-        code: 400,
-        message: 'Falta añadir el address del contrato PCR como querystring',
-      };
-    contractAddress = contractaddress;
-    funcData = funcAbi.signature;
-    privateFor = [config.orion.taker.publicKey];
-  }
-  let functionParams = {
-    to: contractAddress,
-    data: funcData,
-    privateFrom: privateFrom,
-    privateFor: privateFor,
-    privateKey: config.besu.thisnode.privateKey,
-  };
-  let transactionHash = await web3.eea.sendRawTransaction(functionParams);
-  console.log(`Transaction hash: ${transactionHash}`);
-  let result = await web3.priv.getTransactionReceipt(
-    transactionHash,
-    config.orion.taker.publicKey
-  );
-  let resultData = await web3.eth.abi.decodeParameters(
-    funcAbi.outputs,
-    result.output
-  );
-  let pcrInfo = {
-    result: Web3Utils.toUtf8(resultData['0']),
-    customerId: resultData['1'],
-    requestDate: new Date(parseInt(resultData['2']) * 1000).toISOString(),
-    resultDate: new Date(parseInt(resultData['3']) * 1000).toISOString(),
-    id: resultData['4'],
-    address: resultData['5'],
-  };
-  console.log(pcrInfo);
-  return pcrInfo;
+  return new Promise(async function (resolve, reject) {
+    let funcAbi,
+      funcArguments,
+      funcData,
+      contractAddress,
+      privateFor,
+      privateFrom;
+    if (config.businessParams.nodeRole !== 'laboratory') {
+      privateFrom = config.orion.taker.publicKey;
+      funcAbi = await getFunctionAbi(insuranceAbi, 'getPCR');
+      funcArguments = web3.eth.abi
+        .encodeParameters(funcAbi.inputs, [Web3Utils.fromAscii(pcrRequestId)])
+        .slice(2);
+      contractAddress = await getInsuranceAddressByInsuranceId(insuranceId);
+      funcData = funcAbi.signature + funcArguments;
+      privateFor = [mutuaPublicKey];
+    } else {
+      privateFrom = config.orion.laboratory.publicKey;
+      funcAbi = await getFunctionAbi(PCRAbi, 'getPCRData');
+      if (contractaddress === undefined)
+        throw {
+          code: 400,
+          message: 'Falta añadir el address del contrato PCR como querystring',
+        };
+      contractAddress = contractaddress;
+      funcData = funcAbi.signature;
+      privateFor = [config.orion.taker.publicKey];
+    }
+    let functionParams = {
+      to: contractAddress,
+      data: funcData,
+      privateFrom: privateFrom,
+      privateFor: privateFor,
+      privateKey: config.besu.thisnode.privateKey,
+    };
+    let transactionHash = await web3.eea.sendRawTransaction(functionParams);
+    console.log(`Transaction hash: ${transactionHash}`);
+    let result = await web3.priv.getTransactionReceipt(
+      transactionHash,
+      config.orion.taker.publicKey
+    );
+    if (result.revertReason) {
+      let error = Web3Utils.toAscii('0x' + result.revertReason.slice(138));
+      console.log(error);
+      reject({ code: '400', message: error });
+    }
+    let resultData = await web3.eth.abi.decodeParameters(
+      funcAbi.outputs,
+      result.output
+    );
+    let pcrInfo = {
+      result: Web3Utils.toUtf8(resultData['0']),
+      customerId: resultData['1'],
+      requestDate: new Date(parseInt(resultData['2']) * 1000).toISOString(),
+      resultDate: new Date(parseInt(resultData['3']) * 1000).toISOString(),
+      id: resultData['4'],
+      address: resultData['5'],
+    };
+    if (resultData['3'] === '0') {
+      pcrInfo.resultDate = "UNDEFINED";
+    }
+    console.log(resultData);
+    console.log(pcrInfo);
+    resolve(pcrInfo);
+  });
 }
 
 /**
@@ -402,7 +435,6 @@ async function updatePCR(
       transactionHash,
       config.orion.laboratory.publicKey
     );
-    console.log(result);
     if (result.revertReason) {
       let error = Web3Utils.toAscii('0x' + result.revertReason.slice(138));
       console.log(error);
@@ -419,29 +451,36 @@ async function updatePCR(
  * @returns Hash of the transaction
  */
 async function deletePCRInsurance(insuranceId, pcrRequestId) {
-  let funcAbi = await getFunctionAbi(insuranceAbi, 'deletePCR');
-  let funcArguments = web3.eth.abi
-    .encodeParameters(funcAbi.inputs, [Web3Utils.fromAscii(pcrRequestId)])
-    .slice(2);
-  let insuranceAddress = await getInsuranceAddressByInsuranceId(insuranceId);
-  let functionParams = {
-    to: insuranceAddress,
-    data: funcAbi.signature + funcArguments,
-    privateFrom: config.orion.taker.publicKey,
-    privateFor: [mutuaPublicKey],
-    privateKey: config.besu.thisnode.privateKey,
-  };
-  let transactionHash = await web3.eea.sendRawTransaction(functionParams);
-  console.log(`Transaction hash: ${transactionHash}`);
-  let result = await web3.priv.getTransactionReceipt(
-    transactionHash,
-    config.orion.taker.publicKey
-  );
-  let resultData = await web3.eth.abi.decodeParameters(
-    funcAbi.outputs,
-    result.output
-  );
-  return resultData[0];
+  return new Promise(async function (resolve, reject) {
+    let funcAbi = await getFunctionAbi(insuranceAbi, 'deletePCR');
+    let funcArguments = web3.eth.abi
+      .encodeParameters(funcAbi.inputs, [Web3Utils.fromAscii(pcrRequestId)])
+      .slice(2);
+    let insuranceAddress = await getInsuranceAddressByInsuranceId(insuranceId);
+    let functionParams = {
+      to: insuranceAddress,
+      data: funcAbi.signature + funcArguments,
+      privateFrom: config.orion.taker.publicKey,
+      privateFor: [mutuaPublicKey],
+      privateKey: config.besu.thisnode.privateKey,
+    };
+    let transactionHash = await web3.eea.sendRawTransaction(functionParams);
+    console.log(`Transaction hash: ${transactionHash}`);
+    let result = await web3.priv.getTransactionReceipt(
+      transactionHash,
+      config.orion.taker.publicKey
+    );
+    if (result.revertReason) {
+      let error = Web3Utils.toAscii('0x' + result.revertReason.slice(138));
+      console.log(error);
+      reject({ code: '400', message: error });
+    }
+    let resultData = await web3.eth.abi.decodeParameters(
+      funcAbi.outputs,
+      result.output
+    );
+    resolve(resultData[0]);
+  });
 }
 
 /**
@@ -450,21 +489,28 @@ async function deletePCRInsurance(insuranceId, pcrRequestId) {
  * @returns
  */
 async function deletePCR(contractaddress) {
-  let funcAbi = await getFunctionAbi(PCRAbi, 'deletePCR');
-  let functionParams = {
-    to: contractaddress,
-    data: funcAbi.signature,
-    privateFrom: config.orion.taker.publicKey,
-    privateFor: [labPublicKey],
-    privateKey: config.besu.thisnode.privateKey,
-  };
-  let transactionHash = await web3.eea.sendRawTransaction(functionParams);
-  console.log(`Transaction hash: ${transactionHash}`);
-  let result = await web3.priv.getTransactionReceipt(
-    transactionHash,
-    config.orion.taker.publicKey
-  );
-  return result;
+  return new Promise(async function (resolve, reject) {
+    let funcAbi = await getFunctionAbi(PCRAbi, 'deletePCR');
+    let functionParams = {
+      to: contractaddress,
+      data: funcAbi.signature,
+      privateFrom: config.orion.taker.publicKey,
+      privateFor: [labPublicKey],
+      privateKey: config.besu.thisnode.privateKey,
+    };
+    let transactionHash = await web3.eea.sendRawTransaction(functionParams);
+    console.log(`Transaction hash: ${transactionHash}`);
+    let result = await web3.priv.getTransactionReceipt(
+      transactionHash,
+      config.orion.taker.publicKey
+    );
+    if (result.revertReason) {
+      let error = Web3Utils.toAscii('0x' + result.revertReason.slice(138));
+      console.log(error);
+      reject({ code: '400', message: error });
+    }
+    resolve(result);
+  });
 }
 
 /**
@@ -473,32 +519,34 @@ async function deletePCR(contractaddress) {
  * @returns
  */
 async function getAllInsurancePolicyHotel(body) {
-  let funcAbi = await getFunctionAbi(Spc19Abi, 'getAllInsurances');
-  let functionParams = {
-    to: config.spc19ContractAddress.value(),
-    data: funcAbi.signature,
-    privateFrom: config.orion.taker.publicKey,
-    privateFor: [mutuaPublicKey],
-    privateKey: config.besu.thisnode.privateKey,
-  };
-  let transactionHash = await web3.eea.sendRawTransaction(functionParams);
-  console.log(`Transaction hash: ${transactionHash}`);
-  let result = await web3.priv.getTransactionReceipt(
-    transactionHash,
-    config.orion.taker.publicKey
-  );
-  if (result.revertReason) {
-    let error = Web3Utils.toAscii('0x' + result.revertReason.slice(138));
-    console.log(error);
-    reject({ code: '400', message: error });
-  }
-  let resultData = await web3.eth.abi.decodeParameters(
-    funcAbi.outputs,
-    result.output
-  );
-  let insurancesData = multipleDeseriality(resultData[0]);
-  console.log(insurancesData);
-  return insurancesData;
+  return new Promise(async function (resolve, reject) {
+    let funcAbi = await getFunctionAbi(Spc19Abi, 'getAllInsurances');
+    let functionParams = {
+      to: config.spc19ContractAddress.value(),
+      data: funcAbi.signature,
+      privateFrom: config.orion.taker.publicKey,
+      privateFor: [mutuaPublicKey],
+      privateKey: config.besu.thisnode.privateKey,
+    };
+    let transactionHash = await web3.eea.sendRawTransaction(functionParams);
+    console.log(`Transaction hash: ${transactionHash}`);
+    let result = await web3.priv.getTransactionReceipt(
+      transactionHash,
+      config.orion.taker.publicKey
+    );
+    if (result.revertReason) {
+      let error = Web3Utils.toAscii('0x' + result.revertReason.slice(138));
+      console.log(error);
+      reject({ code: '400', message: error });
+    }
+    let resultData = await web3.eth.abi.decodeParameters(
+      funcAbi.outputs,
+      result.output
+    );
+    let insurancesData = multipleDeseriality(resultData[0]);
+    console.log(insurancesData);
+    resolve(insurancesData);
+  });
 }
 
 /**
@@ -507,30 +555,37 @@ async function getAllInsurancePolicyHotel(body) {
  * @returns
  */
 async function getAllInsurancePolicyMutua(body) {
-  let funcAbi = await getFunctionAbi(Spc19Abi, 'getAllInsurances');
-  let insurancesTotalData = [];
-  // for (iterar entre todos los contratos generales de todos los hoteles) {
-  let functionParams = {
-    to: config.spc19ContractAddress.value(), // aqui
-    data: funcAbi.signature,
-    privateFrom: mutuaPublicKey,
-    privateFor: [config.orion.taker.publicKey], // aqui
-    privateKey: config.besu.thisnode.privateKey,
-  };
-  let transactionHash = await web3.eea.sendRawTransaction(functionParams);
-  console.log(`Transaction hash: ${transactionHash}`);
-  let result = await web3.priv.getTransactionReceipt(
-    transactionHash,
-    mutuaPublicKey
-  );
-  let resultData = await web3.eth.abi.decodeParameters(
-    funcAbi.outputs,
-    result.output
-  );
-  let insurancesData = multipleDeseriality(resultData[0]);
-  insurancesTotalData = insurancesTotalData.concat(insurancesData);
-  console.log(insurancesTotalData);
-  return insurancesTotalData;
+  return new Promise(async function (resolve, reject) {
+    let funcAbi = await getFunctionAbi(Spc19Abi, 'getAllInsurances');
+    let insurancesTotalData = [];
+    // for (iterar entre todos los contratos generales de todos los hoteles) {
+    let functionParams = {
+      to: config.spc19ContractAddress.value(), // aqui
+      data: funcAbi.signature,
+      privateFrom: mutuaPublicKey,
+      privateFor: [config.orion.taker.publicKey], // aqui
+      privateKey: config.besu.thisnode.privateKey,
+    };
+    let transactionHash = await web3.eea.sendRawTransaction(functionParams);
+    console.log(`Transaction hash: ${transactionHash}`);
+    let result = await web3.priv.getTransactionReceipt(
+      transactionHash,
+      mutuaPublicKey
+    );
+    if (result.revertReason) {
+      let error = Web3Utils.toAscii('0x' + result.revertReason.slice(138));
+      console.log(error);
+      reject({ code: '400', message: error });
+    }
+    let resultData = await web3.eth.abi.decodeParameters(
+      funcAbi.outputs,
+      result.output
+    );
+    let insurancesData = multipleDeseriality(resultData[0]);
+    insurancesTotalData = insurancesTotalData.concat(insurancesData);
+    console.log(insurancesTotalData);
+    resolve(insurancesTotalData);
+  });
 }
 
 /**
