@@ -19404,7 +19404,7 @@
   "storageLayout": {
     "storage": [
       {
-        "astId": 1580,
+        "astId": 1584,
         "contract": "PCR.sol:PCR",
         "label": "owner",
         "offset": 0,
@@ -19412,7 +19412,7 @@
         "type": "t_address_payable"
       },
       {
-        "astId": 1582,
+        "astId": 1586,
         "contract": "PCR.sol:PCR",
         "label": "completed",
         "offset": 20,
@@ -19420,7 +19420,7 @@
         "type": "t_bool"
       },
       {
-        "astId": 1584,
+        "astId": 1588,
         "contract": "PCR.sol:PCR",
         "label": "deleted",
         "offset": 21,
@@ -19428,12 +19428,12 @@
         "type": "t_bool"
       },
       {
-        "astId": 1587,
+        "astId": 1591,
         "contract": "PCR.sol:PCR",
         "label": "pcrData",
         "offset": 0,
         "slot": "1",
-        "type": "t_struct(PCRData)1578_storage"
+        "type": "t_struct(PCRData)1582_storage"
       }
     ],
     "types": {
@@ -19457,12 +19457,12 @@
         "label": "bytes32",
         "numberOfBytes": "32"
       },
-      "t_struct(PCRData)1578_storage": {
+      "t_struct(PCRData)1582_storage": {
         "encoding": "inplace",
         "label": "struct PCR.PCRData",
         "members": [
           {
-            "astId": 1565,
+            "astId": 1569,
             "contract": "PCR.sol:PCR",
             "label": "insuranceId",
             "offset": 0,
@@ -19470,7 +19470,7 @@
             "type": "t_bytes32"
           },
           {
-            "astId": 1567,
+            "astId": 1571,
             "contract": "PCR.sol:PCR",
             "label": "result",
             "offset": 0,
@@ -19478,7 +19478,7 @@
             "type": "t_bytes32"
           },
           {
-            "astId": 1569,
+            "astId": 1573,
             "contract": "PCR.sol:PCR",
             "label": "id",
             "offset": 0,
@@ -19486,7 +19486,7 @@
             "type": "t_bytes32"
           },
           {
-            "astId": 1571,
+            "astId": 1575,
             "contract": "PCR.sol:PCR",
             "label": "insuredId",
             "offset": 0,
@@ -19494,7 +19494,7 @@
             "type": "t_bytes32"
           },
           {
-            "astId": 1573,
+            "astId": 1577,
             "contract": "PCR.sol:PCR",
             "label": "requestDate",
             "offset": 0,
@@ -19502,7 +19502,7 @@
             "type": "t_uint256"
           },
           {
-            "astId": 1575,
+            "astId": 1579,
             "contract": "PCR.sol:PCR",
             "label": "resultDate",
             "offset": 0,
@@ -19510,7 +19510,7 @@
             "type": "t_uint256"
           },
           {
-            "astId": 1577,
+            "astId": 1581,
             "contract": "PCR.sol:PCR",
             "label": "insuranceAddress",
             "offset": 0,

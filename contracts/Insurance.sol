@@ -136,7 +136,7 @@ contract Insurance is Seriality {
 
     ///  Events to emit the information about a sinister.
     event positivePcr(bytes32 customerId, uint256 resultDate);
-    event checkPayment(uint256 quantity, bytes32 hotelId, bytes32 hotelIban);
+    event checkPayment(uint256 quantity, bytes32 hotelId, bytes32 hotelIban, bytes32 insuranceId);
 
     /// @notice Fill the information of taker data and insurance data.
     constructor(
@@ -202,7 +202,7 @@ contract Insurance is Seriality {
     function compensation() public {
         uint256 result = calculateCompensation();
         if (positivePcrTest && !paymentEmitted) {
-            emit checkPayment(result, takerData.takerId, takerData.takerIban);
+            emit checkPayment(result, takerData.takerId, takerData.takerIban, insuranceData.id);
             paymentEmitted = true;
             timePaymentEmitted = block.timestamp;
         }
