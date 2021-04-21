@@ -96,6 +96,7 @@ contract Spc19 {
     /// @notice Return the address of the specific insurance.
     /// @dev Useful to call insurance method in that address if needed.
     function getAddressOfInsurance(bytes32 _insuranceId) external view returns(address insuranceAddress) {
+        require(idInsuranceToAddress[_insuranceId] != address(0), "No existe una poliza con esa id.");
         return idInsuranceToAddress[_insuranceId];
     }
 

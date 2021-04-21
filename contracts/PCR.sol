@@ -61,7 +61,7 @@ contract PCR {
     }
 
     /// @notice Returns PCR data.
-    function getPCRData() external view returns(
+    function getPCRData(bytes32 _idInsurance, bytes32 _id) external view returns(
         bytes32 result, 
         bytes32 customerId, 
         uint256 requestDate, 
@@ -70,6 +70,8 @@ contract PCR {
         address pcrContractAddress,
         bytes32 insuranceId
     ) {
+        require(pcrData.insuranceId == _idInsurance, "La id de la poliza no coincide con la introducida");
+        require(pcrData.id == _id, "La id de la PCR no coincide con la introducida");
         return (pcrData.result, pcrData.insuredId, pcrData.requestDate, pcrData.resultDate, pcrData.id, address(this),pcrData.insuranceId);
     }
 

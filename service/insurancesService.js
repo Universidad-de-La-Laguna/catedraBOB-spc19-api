@@ -170,38 +170,48 @@ function insuranceDataObjectToArray(body) {
  * @returns {String} Address of the contract
  */
 async function createInsurance(insuranceData) {
-  let constrAbi = insuranceAbi[0];
-  let constructorArguments = web3.eth.abi
-    .encodeParameters(constrAbi.inputs, insuranceData)
-    .slice(2);
-  let insuranceContract = await createContract(
-    insuranceBytecode + constructorArguments,
-    config.orion.taker.publicKey, // PrivateFrom
-    config.besu.thisnode.privateKey, // PrivateKey
-    [mutuaPublicKey] // PrivateFor
-  );
-  let insuranceAddress = await getContractAddress(
-    insuranceContract,
-    config.orion.taker.publicKey
-  );
-  let funcAbi = await getFunctionAbi(Spc19Abi, 'addInsurance');
-  let addInsuranceArguments = web3.eth.abi
-    .encodeParameters(funcAbi.inputs, [insuranceAddress])
-    .slice(2);
-  let functionParams = {
-    to: config.spc19ContractAddress.value(),
-    data: funcAbi.signature + addInsuranceArguments,
-    privateFrom: config.orion.taker.publicKey,
-    privateFor: [mutuaPublicKey],
-    privateKey: config.besu.thisnode.privateKey,
-  };
-  let transactionHash = await web3.eea.sendRawTransaction(functionParams);
-  console.log(`Transaction hash: ${transactionHash}`);
-  await web3.priv.getTransactionReceipt(
-    transactionHash,
-    config.orion.taker.publicKey
-  );
-  return insuranceAddress;
+  return new Promise(async function (resolve, reject) {
+    if (config.businessParams.nodeRole !== 'taker') {
+      reject({ code: '400', message: 'Sólo los takers pueden crear pólizas' });
+    }
+    let constrAbi = insuranceAbi[0];
+    let constructorArguments = web3.eth.abi
+      .encodeParameters(constrAbi.inputs, insuranceData)
+      .slice(2);
+    let insuranceContract = await createContract(
+      insuranceBytecode + constructorArguments,
+      config.orion.taker.publicKey, // PrivateFrom
+      config.besu.thisnode.privateKey, // PrivateKey
+      [mutuaPublicKey] // PrivateFor
+    );
+    let insuranceAddress = await getContractAddress(
+      insuranceContract,
+      config.orion.taker.publicKey
+    );
+    let funcAbi = await getFunctionAbi(Spc19Abi, 'addInsurance');
+    let addInsuranceArguments = web3.eth.abi
+      .encodeParameters(funcAbi.inputs, [insuranceAddress])
+      .slice(2);
+    let functionParams = {
+      to: config.spc19ContractAddress.value(),
+      data: funcAbi.signature + addInsuranceArguments,
+      privateFrom: config.orion.taker.publicKey,
+      privateFor: [mutuaPublicKey],
+      privateKey: config.besu.thisnode.privateKey,
+    };
+    let transactionHash = await web3.eea.sendRawTransaction(functionParams);
+    console.log(`Transaction hash: ${transactionHash}`);
+    let result = await web3.priv.getTransactionReceipt(
+      transactionHash,
+      config.orion.taker.publicKey
+    );
+    if (result.revertReason) {
+      let error = Web3Utils.toAscii('0x' + result.revertReason.slice(138));
+      console.log(error);
+      reject({ code: '400', message: error });
+    }
+    resolve(insuranceAddress);
+  });
 }
 
 /**
@@ -213,6 +223,12 @@ async function createInsurance(insuranceData) {
  */
 async function createPCR(body, insuranceId, requestDate) {
   return new Promise(async function (resolve, reject) {
+    if (config.businessParams.nodeRole !== 'taker') {
+      reject({
+        code: '400',
+        message: 'Sólo los takers pueden crear solicitudes de PCR',
+      });
+    }
     getInsuranceAddressByInsuranceId(insuranceId)
       .then((insuranceAddress) => {
         let constrAbi = PCRAbi[0];
@@ -331,38 +347,29 @@ async function addPCR(body, insuranceAddress, requestDate, pcrAddress) {
  */
 async function getDataPCR(insuranceId, pcrRequestId, contractaddress) {
   return new Promise(async function (resolve, reject) {
-    let funcAbi,
-      funcArguments,
-      funcData,
-      contractAddress,
-      privateFor,
-      privateFrom;
     if (config.businessParams.nodeRole !== 'laboratory') {
-      privateFrom = config.orion.taker.publicKey;
-      funcAbi = await getFunctionAbi(insuranceAbi, 'getPCR');
-      funcArguments = web3.eth.abi
-        .encodeParameters(funcAbi.inputs, [Web3Utils.fromAscii(pcrRequestId)])
-        .slice(2);
-      contractAddress = await getInsuranceAddressByInsuranceId(insuranceId);
-      funcData = funcAbi.signature + funcArguments;
-      privateFor = [mutuaPublicKey];
-    } else {
-      privateFrom = config.orion.laboratory.publicKey;
-      funcAbi = await getFunctionAbi(PCRAbi, 'getPCRData');
-      if (contractaddress === undefined)
-        throw {
-          code: 400,
-          message: 'Falta añadir el address del contrato PCR como querystring',
-        };
-      contractAddress = contractaddress;
-      funcData = funcAbi.signature;
-      privateFor = [config.orion.taker.publicKey];
+      reject({
+        code: '400',
+        message: 'Sólo los laboratorios pueden pedir datos de PCR',
+      });
     }
+    let funcAbi = await getFunctionAbi(PCRAbi, 'getPCRData');
+    if (contractaddress === undefined)
+      reject({
+        code: 400,
+        message: 'Falta añadir el address del contrato PCR como querystring',
+      });
+    let funcArguments = web3.eth.abi
+      .encodeParameters(funcAbi.inputs, [
+        Web3Utils.fromAscii(insuranceId),
+        Web3Utils.fromAscii(pcrRequestId),
+      ])
+      .slice(2);
     let functionParams = {
-      to: contractAddress,
-      data: funcData,
-      privateFrom: privateFrom,
-      privateFor: privateFor,
+      to: contractaddress,
+      data: funcAbi.signature + funcArguments,
+      privateFrom: config.orion.laboratory.publicKey,
+      privateFor: [config.orion.taker.publicKey],
       privateKey: config.besu.thisnode.privateKey,
     };
     let transactionHash = await web3.eea.sendRawTransaction(functionParams);
@@ -389,9 +396,8 @@ async function getDataPCR(insuranceId, pcrRequestId, contractaddress) {
       address: resultData['5'],
     };
     if (resultData['3'] === '0') {
-      pcrInfo.resultDate = "UNDEFINED";
+      pcrInfo.resultDate = 'UNDEFINED';
     }
-    console.log(resultData);
     console.log(pcrInfo);
     resolve(pcrInfo);
   });
@@ -413,6 +419,12 @@ async function updatePCR(
   resultDate
 ) {
   return new Promise(async function (resolve, reject) {
+    if (config.businessParams.nodeRole !== 'laboratory') {
+      reject({
+        code: '400',
+        message: 'Sólo el laboratorio puede actualizar las PCRs',
+      });
+    }
     let funcAbi = await getFunctionAbi(PCRAbi, 'updatePCR');
     let funcArguments = web3.eth.abi
       .encodeParameters(funcAbi.inputs, [
@@ -452,6 +464,9 @@ async function updatePCR(
  */
 async function deletePCRInsurance(insuranceId, pcrRequestId) {
   return new Promise(async function (resolve, reject) {
+    if (config.businessParams.nodeRole !== 'taker') {
+      reject({ code: '400', message: 'Sólo los takers pueden borrar PCRs' });
+    }
     let funcAbi = await getFunctionAbi(insuranceAbi, 'deletePCR');
     let funcArguments = web3.eth.abi
       .encodeParameters(funcAbi.inputs, [Web3Utils.fromAscii(pcrRequestId)])
@@ -534,6 +549,7 @@ async function getAllInsurancePolicyHotel(body) {
       transactionHash,
       config.orion.taker.publicKey
     );
+    console.log(result);
     if (result.revertReason) {
       let error = Web3Utils.toAscii('0x' + result.revertReason.slice(138));
       console.log(error);
@@ -598,9 +614,6 @@ async function getAllInsurancePolicyMutua(body) {
 exports.addInsurancePolicy = function (body) {
   return new Promise(async function (resolve, reject) {
     //TODO
-    if (config.businessParams.nodeRole !== 'taker') {
-      reject('Sólo los takers pueden crear pólizas');
-    }
     const datos = insuranceDataObjectToArray(body);
     createInsurance(datos[0])
       .then((hotelInsuranceAddress) => {
@@ -661,7 +674,10 @@ exports.getAllInsurancePolicy = function (body) {
           reject(error);
         });
     } else {
-      reject('EL laboratorio no puede consultar pólizas');
+      reject({
+        code: '400',
+        message: 'EL laboratorio no puede consultar pólizas',
+      });
     }
   });
 };
@@ -677,9 +693,6 @@ exports.getAllInsurancePolicy = function (body) {
 exports.addPcrRequest = function (body, insuranceId) {
   return new Promise(async function (resolve, reject) {
     //TODO
-    if (config.businessParams.nodeRole !== 'taker') {
-      reject('Sólo los takers pueden crear solicitudes de PCR');
-    }
     const requestDate = parseInt(new Date().getTime() / 1000);
     // Create PCR
     createPCR(body, insuranceId, requestDate)
@@ -746,9 +759,6 @@ exports.setResultPcrRequest = function (
 ) {
   return new Promise(async function (resolve, reject) {
     //TODO
-    if (config.businessParams.nodeRole !== 'laboratory') {
-      reject('Sólo el laboratorio puede actualizar las PCRs');
-    }
     const resultDate = parseInt(new Date().getTime() / 1000);
     updatePCR(body, insuranceId, pcrRequestId, contractaddress, resultDate)
       .then((res) => {
@@ -774,9 +784,6 @@ exports.setResultPcrRequest = function (
 exports.deletePcrRequest = function (insuranceId, pcrRequestId) {
   return new Promise(async function (resolve, reject) {
     //TODO
-    if (config.businessParams.nodeRole !== 'taker') {
-      reject('Sólo los takers pueden borrar PCRs');
-    }
     deletePCRInsurance(insuranceId, pcrRequestId)
       .then((contractadress) => {
         deletePCR(contractadress)

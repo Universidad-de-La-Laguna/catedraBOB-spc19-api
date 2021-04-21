@@ -258,9 +258,6 @@ contract Insurance is Seriality {
         require(isPcrActive[_idPCR], "No existe una PCR con esa ID");
         address contractAddress = pcrIdToData[_idPCR].contractAddress;
         isPcrActive[_idPCR] = false;
-        delete pcrIdToData[_idPCR];
-        delete pcrLocation[_idPCR];
-        delete pcrIdToInsuredId[_idPCR];
         insuranceData.pcrNumber--;
         return contractAddress;
     }
@@ -274,7 +271,7 @@ contract Insurance is Seriality {
         bytes32 id,
         address pcrContractAddress
     ) {
-        // require(pcrIdToInsuredId[_idPCR] != 0, "PCR has to be linked to an insured identifier.");
+        require(isPcrActive[_idPCR], "No existe una PCR con esa ID");
         return (
             pcrIdToData[_idPCR].result,
             pcrIdToData[_idPCR].insuredId,
@@ -284,8 +281,6 @@ contract Insurance is Seriality {
             pcrIdToData[_idPCR].contractAddress
             );
     }
-
-
 
     /// @notice Returns the information of the taker data.
     function getTakerData() external view returns(
