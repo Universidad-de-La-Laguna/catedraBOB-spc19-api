@@ -1,16 +1,17 @@
 const { CONFIG } = require("../config");
 const { extendYup } = require("./extensions");
 const yup = extendYup(require("yup"));
+const { uuidSchema } = require("../common");
 
 const NIF_REGEX = /^\d{8}[a-zA-Z]{1}$/;
 
 const insuranceSchema = yup.object().shape({
-  id: yup.string().uuid().required(),
+  id: uuidSchema,
   taker: yup
     .object()
     .required()
     .shape({
-      takerId: yup.string().uuid().required(),
+      takerId: uuidSchema,
       takerNif: yup.string().required().matches(NIF_REGEX),
       takerFullName: yup.string().required(),
       takerContactAddress: yup.string().required(),
@@ -30,7 +31,7 @@ const insuranceSchema = yup.object().shape({
     .unique("Duplicate Customer ID", (customer) => customer.customerId)
     .of(
       yup.object().shape({
-        customerId: yup.string().uuid().required(),
+        customerId: uuidSchema,
         customerNif: yup.string().required().matches(NIF_REGEX),
         customerFullName: yup.string().required(),
         customerGender: yup.string().required().oneOf(CONFIG.GENDER_OPTIONS),
@@ -54,8 +55,8 @@ const insuranceSchema = yup.object().shape({
     .required()
     .of(
       yup.object().shape({
-        id: yup.string().uuid().required(),
-        customerId: yup.string().uuid().required(),
+        id: uuidSchema,
+        customerId: uuidSchema,
       })
     )
     .unique("Duplicate PCR request ID", (pcrRequest) => pcrRequest.id)

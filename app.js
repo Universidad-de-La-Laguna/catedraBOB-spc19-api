@@ -5,6 +5,8 @@ const util = require('util')
 var cors = require("cors")
 var oasTools = require('oas-tools')
 const bodyParser = require('body-parser')
+const { logger } = require("./utils/logger");
+const pinoHttp = require("pino-http")({ logger: logger });
 
 var express = require('express')
 var app = express()
@@ -12,8 +14,8 @@ var app = express()
 app.use(bodyParser.json({
     strict: true
 }))
-
 app.use(cors())
+app.use(pinoHttp)
 
 var jsyaml = require('js-yaml')
 var fs = require('fs')
