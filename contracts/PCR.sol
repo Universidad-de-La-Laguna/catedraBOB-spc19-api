@@ -23,6 +23,7 @@ contract PCR {
 
     PCRData private pcrData;
 
+    event pcrCreated(bytes32 id, bytes32 insuranceId, bytes32 insuredId, uint256 requestDate, address pcrAddress, address insuranceAddress);
     event pcrUpdate(bytes32 insuranceId, bytes32 pcrId,bytes32 result, uint256 resultDate, address insuranceAddress);
 
     modifier notDeleted {
@@ -47,6 +48,7 @@ contract PCR {
         completed = false;
         pcrData.result = "UNDEFINED";
         deleted = false;
+        emit pcrCreated(_id, _insuranceId, _insuredId, _requestDate, address(this), _insuranceAddress);
     }
 
     /// @notice Update de pcr result state from the laboratory.
