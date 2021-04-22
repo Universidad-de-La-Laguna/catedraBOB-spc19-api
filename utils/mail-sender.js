@@ -1,6 +1,6 @@
 const nodemailer = require('nodemailer')
 const config = require('../config')
-const { logger } = require("../utils/logger")
+const { logger } = require("./logger")
 
 function sendEmail(email, subject, text, html) {
     logger.info(`Sending validation email to ${email} with subject '${subject}'`)

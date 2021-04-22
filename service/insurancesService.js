@@ -7,7 +7,7 @@ const EEAClient = require('web3-eea');
 const config = require('../config');
 const { deseriality, multipleDeseriality } = require('../scripts/deseriality');
 const { logger } = require("../utils/logger")
-const mail = require('../helpers/mail-sender');
+const mail = require('../utils/mail-sender');
 
 const chainId = 1337;
 const web3 = new EEAClient(new Web3(config.besu.thisnode.url), chainId);
