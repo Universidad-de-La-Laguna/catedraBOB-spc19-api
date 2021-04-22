@@ -11,6 +11,9 @@ RUN npm install --production
 # Bundle app source
 COPY . /usr/src/app
 
+# Install node global dependencies
+RUN npm install -g pino-pretty
+
 EXPOSE 8080
 
 HEALTHCHECK --interval=10s --timeout=3s --start-period=5s --retries=3 \
