@@ -177,43 +177,48 @@ async function createInsurance(insuranceData) {
     if (config.businessParams.nodeRole !== 'taker') {
       reject({ code: '400', message: 'Sólo los takers pueden crear pólizas' });
     }
-    let constrAbi = insuranceAbi[0];
-    let constructorArguments = web3.eth.abi
-      .encodeParameters(constrAbi.inputs, insuranceData)
-      .slice(2);
-    let insuranceContract = await createContract(
-      insuranceBytecode + constructorArguments,
-      config.orion.taker.publicKey, // PrivateFrom
-      config.besu.thisnode.privateKey, // PrivateKey
-      [mutuaPublicKey] // PrivateFor
-    );
-    let insuranceAddress = await getContractAddress(
-      insuranceContract,
-      config.orion.taker.publicKey
-    );
-    let funcAbi = await getFunctionAbi(Spc19Abi, 'addInsurance');
-    let addInsuranceArguments = web3.eth.abi
-      .encodeParameters(funcAbi.inputs, [insuranceAddress])
-      .slice(2);
-    let functionParams = {
-      to: config.spc19ContractAddress.value(),
-      data: funcAbi.signature + addInsuranceArguments,
-      privateFrom: config.orion.taker.publicKey,
-      privateFor: [mutuaPublicKey],
-      privateKey: config.besu.thisnode.privateKey,
-    };
-    let transactionHash = await web3.eea.sendRawTransaction(functionParams);
-    logger.info(`Transaction hash: ${transactionHash}`);
-    let result = await web3.priv.getTransactionReceipt(
-      transactionHash,
-      config.orion.taker.publicKey
-    );
-    if (result.revertReason) {
-      let error = Web3Utils.toAscii('0x' + result.revertReason.slice(138));
-      logger.error(error);
-      reject({ code: '400', message: error });
+    try {
+      let constrAbi = insuranceAbi[0];
+      let constructorArguments = web3.eth.abi
+        .encodeParameters(constrAbi.inputs, insuranceData)
+        .slice(2);
+      let insuranceContract = await createContract(
+        insuranceBytecode + constructorArguments,
+        config.orion.taker.publicKey, // PrivateFrom
+        config.besu.thisnode.privateKey, // PrivateKey
+        [mutuaPublicKey] // PrivateFor
+      );
+      let insuranceAddress = await getContractAddress(
+        insuranceContract,
+        config.orion.taker.publicKey
+      );
+      let funcAbi = await getFunctionAbi(Spc19Abi, 'addInsurance');
+      let addInsuranceArguments = web3.eth.abi
+        .encodeParameters(funcAbi.inputs, [insuranceAddress])
+        .slice(2);
+      let functionParams = {
+        to: config.spc19ContractAddress.value(),
+        data: funcAbi.signature + addInsuranceArguments,
+        privateFrom: config.orion.taker.publicKey,
+        privateFor: [mutuaPublicKey],
+        privateKey: config.besu.thisnode.privateKey,
+      };
+      let transactionHash = await web3.eea.sendRawTransaction(functionParams);
+      logger.info(`Transaction hash: ${transactionHash}`);
+      let result = await web3.priv.getTransactionReceipt(
+        transactionHash,
+        config.orion.taker.publicKey
+      );
+      if (result.revertReason) {
+        let error = Web3Utils.toAscii('0x' + result.revertReason.slice(138));
+        logger.error(error);
+        reject({ code: '400', message: error });
+      }
+      resolve(insuranceAddress);  
     }
-    resolve(insuranceAddress);
+    catch (error) {
+      reject(error)
+    }
   });
 }
 
