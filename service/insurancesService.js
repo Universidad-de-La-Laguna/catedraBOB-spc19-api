@@ -611,7 +611,7 @@ async function getAllInsurancePolicyMutua(body) {
   return new Promise(async function (resolve, reject) {
     let funcAbi = await getFunctionAbi(Spc19Abi, 'getAllInsurances');
     let insurancesTotalData = [];
-    // for (iterar entre todos los contratos generales de todos los hoteles) {
+    // TODO: for (iterar entre todos los contratos generales de todos los hoteles) {
     let functionParams = {
       to: config.spc19ContractAddress.value(), // aqui
       data: funcAbi.signature,
@@ -650,7 +650,6 @@ async function getAllInsurancePolicyMutua(body) {
  **/
 exports.addInsurancePolicy = function (body) {
   return new Promise(async function (resolve, reject) {
-    //TODO
     const datos = insuranceDataObjectToArray(body);
     createInsurance(datos[0])
       .then((hotelInsuranceAddress) => {
@@ -687,7 +686,6 @@ exports.addInsurancePolicy = function (body) {
  */
 exports.getAllInsurancePolicy = function (body) {
   return new Promise(async function (resolve, reject) {
-    //TODO
     // Depende si se llama desde el hotel o de la mutua debe dar resultados
     // diferentes ya que la mutua ve todas las pólizas y el hotel solo las suyas
     if (config.businessParams.nodeRole === 'taker') {
@@ -729,7 +727,6 @@ exports.getAllInsurancePolicy = function (body) {
  **/
 exports.addPcrRequest = function (body, insuranceId) {
   return new Promise(async function (resolve, reject) {
-    //TODO
     const requestDate = parseInt(new Date().getTime() / 1000);
     // Create PCR
     createPCR(body, insuranceId, requestDate)
@@ -765,7 +762,6 @@ exports.addPcrRequest = function (body, insuranceId) {
  **/
 exports.getPcrRequest = function (insuranceId, pcrRequestId, contractaddress) {
   return new Promise(async function (resolve, reject) {
-    //TODO
     getDataPCR(insuranceId, pcrRequestId, contractaddress)
       .then((result) => {
         logger.info('PCR recuperada con éxito');
@@ -795,7 +791,6 @@ exports.setResultPcrRequest = function (
   contractaddress
 ) {
   return new Promise(async function (resolve, reject) {
-    //TODO
     const resultDate = parseInt(new Date().getTime() / 1000);
     updatePCR(body, insuranceId, pcrRequestId, contractaddress, resultDate)
       .then((res) => {
@@ -820,7 +815,6 @@ exports.setResultPcrRequest = function (
  */
 exports.deletePcrRequest = function (insuranceId, pcrRequestId) {
   return new Promise(async function (resolve, reject) {
-    //TODO
     deletePCRInsurance(insuranceId, pcrRequestId)
       .then((contractadress) => {
         deletePCR(contractadress)
