@@ -36,7 +36,7 @@ docker run -d \
   -e BESUNODEURL=http://spc19-test-network_member1besu_1:8545 \
   -e BESUNODEWSURL=ws://spc19-test-network_member1besu_1:8546 \
   -e BESUNODEPRIVATEKEY=8f2a55949038a9610f50fb23b5883af3b4ecb3c3bb792cbcefbd1542c692be63 \
-  -e SPC19CONTRACTADDRESS=$(docker logs catedrabob-spc19-api-taker | grep "SPC19CONTRACTADDRESS" | sed 's/.*SPC19CONTRACTADDRESS=\(.*\)/\1/') \
+  -e SPC19CONTRACTADDRESS=$(docker logs catedrabob-spc19-api-taker | grep "SPC19CONTRACTADDRESS" | sed 's/.*SPC19CONTRACTADDRESS=\(.*\)###.*$/\1/') \
   -p 7080:8080 \
   --network spc19-test-network_quorum-dev-quickstart \
   catedrabob-spc19-api

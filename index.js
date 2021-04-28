@@ -22,7 +22,7 @@ appPromise
         // Deploy spc19 general contract in this node (taker) and insurer
         logger.info("This service dont have SPC19 general contract configured. Lets proceed to delegate one!")
         config.spc19ContractAddress.set(await despliegueInicialPromise.deployGeneralContracts(config.orion.taker.publicKey, config.orion.insurer.publicKey, config.besu.thisnode.privateKey))
-        logger.warn(`¡¡¡ IMPORTANT !!!: In next executions, set environment variable SPC19CONTRACTADDRESS=${config.spc19ContractAddress.value()}`)
+        logger.warn(`¡¡¡ IMPORTANT !!!: In next executions, set environment variable SPC19CONTRACTADDRESS=${config.spc19ContractAddress.value()}###`)
     }
 
     // Express listen
