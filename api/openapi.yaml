@@ -158,30 +158,6 @@ paths:
         "404":
           description: Item not found
       x-swagger-router-controller: insurancesController
-  /insurance/{insuranceId}/checkPayment:
-    parameters:
-    - name: insuranceId
-      in: path
-      required: true
-      style: simple
-      explode: false
-      schema:
-        $ref: '#/components/schemas/InsuranceId'
-    post:
-      summary: check payment for insurance
-      description: Check the payment to customer for accomplishment of blockchain
-        contract
-      operationId: checkPayment
-      responses:
-        "200":
-          description: payment processed
-        "400":
-          description: Invalid input, object invalid
-        "403":
-          description: Security token is missing or invalid
-        "404":
-          description: Item not found
-      x-swagger-router-controller: insurancesController
 components:
   schemas:
     TakerId:
@@ -384,9 +360,6 @@ components:
         insurer:
           "insurances":
             "read:any":
-              - "*"
-          "insurance/checkPayment":
-            "create:any":
               - "*"
         taker:
           "insurances":

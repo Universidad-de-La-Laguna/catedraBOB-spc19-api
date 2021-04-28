@@ -337,59 +337,6 @@ describe('insurance', function() {
 
     })
 
-    describe('POST Checkpayment', () => {
-
-        it('Takers can not request a CheckPayment', done => {
-            request.post(`/insurance/${insuranceData.id}/checkPayment`)
-            .set('Accept', 'application/json')
-            .set('Authorization', 'Bearer ' + takerBearerToken)
-            .expect(403, done)
-        })
-
-        it('Laboratories can not request a CheckPayment', done => {
-            request.post(`/insurance/${insuranceData.id}/checkPayment`)
-            .set('Accept', 'application/json')
-            .set('Authorization', 'Bearer ' + laboratoryBearerToken)
-            .expect(403, done)
-        })
-
-        it('Error because insurerId not exists', done => {
-            request.post(`/insurance/${FAKEINSURANCEID}/checkPayment`)
-            .set('Accept', 'application/json')
-            .set('Authorization', 'Bearer ' + insurerBearerToken)
-            .expect(400, done)
-        })
-
-        it('Insurers can request a CheckPayment and correct calculate', async done => {
-            // add a second pcrrequest
-            let secondPcrRequestData = Object.assign({}, pcrRequestData)
-            secondPcrRequestData.id = '45ca3a73-7fa1-4598-8492-573d152d3229'
-            secondPcrRequestData.result = 'POSITIVE'
-            secondPcrRequestData.resultDate = now.toISOString()
-
-            const NUMBEROFPOSITIVEREQUESTS = 2
-            let expectedIndemnization = NUMBEROFPOSITIVEREQUESTS * config.businessParams.daysToCompensate * insuranceData.assuredPrice
-
-            await request.post(`/insurance/${insuranceData.id}/pcrRequests`)
-            .send(secondPcrRequestData)
-            .set('Accept', 'application/json')
-            .set('Authorization', 'Bearer ' + takerBearerToken)
-            .expect('Content-Type', /json/)
-            .expect(201)
-
-            request.post(`/insurance/${insuranceData.id}/checkPayment`)
-            .set('Accept', 'application/json')
-            .set('Authorization', 'Bearer ' + insurerBearerToken)
-            .expect(200)
-            .then( res => {
-                expect(res.body.insuranceId).toEqual(insuranceData.id)                
-                expect(res.body.indemnization).toEqual(expectedIndemnization)
-                done()
-            })
-        })
-
-    })
-
     describe('DELETE PCR Request', () => {
 
         it('Insurers can not delete a PCRRequest', done => {

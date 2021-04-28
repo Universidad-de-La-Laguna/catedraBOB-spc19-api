@@ -184,27 +184,3 @@ module.exports.deletePcrRequest = async function deletePcrRequest(
     handleError(error, res, "Delete PCR Request");
   }
 };
-
-module.exports.checkPayment = async function checkPayment(req, res, next) {
-  try {
-    logger.info("Check Payment");
-    logger.info("Validating request...");
-
-    const _insuranceId = await uuidSchema.validate(req.params.insuranceId);
-    const insuranceId = commonTransforms.cleanUuid(_insuranceId);
-
-    logger.info("Success validating Check Payment request");
-    logger.info("Sending request to the Backend...");
-    const response = await insuranceService.checkPayment(insuranceId);
-
-    // return a formatted uuid
-    if (response.insuranceId) {
-      response.insuranceId = toUUID(response.insuranceId);
-    }
-
-    logger.info("Success Checking Payment");
-    utils.writeJson(res, response);
-  } catch (error) {
-    handleError(error, res, "Check Payment");
-  }
-};

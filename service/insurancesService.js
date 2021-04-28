@@ -833,17 +833,3 @@ exports.deletePcrRequest = function (insuranceId, pcrRequestId) {
       });
   });
 };
-
-/**
- * order payment for insurance policy
- * Order the payment to customer for accomplishment of blockchain contract
- *
- * insuranceId InsuranceId
- * no response value expected for this operation
- **/
-exports.checkPayment = function (insuranceId) {
-  return new Promise(function (resolve, reject) {
-    //TODO
-    resolve();
-  });
-};

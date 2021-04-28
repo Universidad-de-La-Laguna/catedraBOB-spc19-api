@@ -175,28 +175,3 @@ exports.deletePcrRequest = function(insuranceId, pcrRequestId) {
     }
   })
 }
-
-/**
- * order payment for insurance policy
- * Order the payment to customer for accomplishment of blockchain contract
- *
- * insuranceId InsuranceId 
- * no response value expected for this operation
- **/
-exports.checkPayment = function(insuranceId) {
-  return new Promise(async function(resolve, reject) {
-    let insurance = await insurerModel.find({ id: insuranceId })
-    if (insurance.length !== 1)
-      reject(new Error('Invalid data'))
-    else {
-      // Get Positive PCRs
-      let pcrReq = await insurance[0].pcrRequests.filter(p => p.result === "POSITIVE")
-
-      // Calculate indemnization and return
-      resolve({
-        insuranceId: insuranceId,
-        indemnization: pcrReq.length * config.businessParams.daysToCompensate * insurance[0].assuredPrice
-      })
-    }
-  })
-}
