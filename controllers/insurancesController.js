@@ -22,7 +22,7 @@ function getErrorStatus(error) {
       return 400;
     }
   } else if (error instanceof Error) {
-    return config.errorStatusCodes[error.message];
+    return config.errorStatusCodes[error.message] || 500;
   } else {
     return 500;
   }
@@ -43,6 +43,7 @@ module.exports.addInsurancePolicy = async function addInsurancePolicy(
     logger.info("New Insurance request");
     logger.info("Validating request...");
     insuranceTransforms.sortCustomersAndPcrs(req.body);
+    logger.info(req.body)
     const insuranceData = await insuranceSchema.validate(req.body);
     insuranceTransforms.cleanUuids(insuranceData);
 
