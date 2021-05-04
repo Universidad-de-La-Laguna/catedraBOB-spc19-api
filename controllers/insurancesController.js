@@ -43,7 +43,7 @@ module.exports.addInsurancePolicy = async function addInsurancePolicy(
     logger.info("New Insurance request");
     logger.info("Validating request...");
     insuranceTransforms.sortCustomersAndPcrs(req.body);
-    logger.info(req.body)
+    logger.info(req.body);
     const insuranceData = await insuranceSchema.validate(req.body);
     insuranceTransforms.cleanUuids(insuranceData);
 
@@ -58,19 +58,32 @@ module.exports.addInsurancePolicy = async function addInsurancePolicy(
   }
 };
 
-module.exports.getAllInsurancePolicy = function getAllInsurancePolicy(
+module.exports.getAllInsurancePolicy = async function getAllInsurancePolicy(
   req,
   res,
   next
 ) {
-  insuranceService
-    .getAllInsurancePolicy()
-    .then(function (response) {
-      utils.writeJson(res, response);
-    })
-    .catch(function (response) {
-      utils.writeJson(res, response);
+  try {
+    const response = await insuranceService.getAllInsurancePolicy();
+    const insurances = await response.map((insurance) => {
+      insurance.id = toUUID(insurance.id);
+      insurance.taker.takerId = toUUID(insurance.taker.takerId);
+      insurance.customers = insurance.customers.map((customer) => ({
+        ...customer,
+        customerId: toUUID(customer.customerId),
+      }));
+      insurance.pcrRequests = insurance.pcrRequests.map((req) => ({
+        ...req,
+        id: toUUID(req.id),
+        customerId: toUUID(req.customerId),
+      }));
+      return insurance;
     });
+
+    utils.writeJson(res, insurances);
+  } catch (error) {
+    handleError(error, res, "Get all insurances");
+  }
 };
 
 module.exports.addPcrRequest = async function addPcrRequest(req, res, next) {
