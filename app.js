@@ -6,7 +6,12 @@ var cors = require("cors")
 var oasTools = require('oas-tools')
 const bodyParser = require('body-parser')
 const { logger } = require("./utils/logger");
-const pinoHttp = require("pino-http")({ logger: logger });
+const pinoHttp = require("pino-http")({ 
+    logger: logger,
+    autoLogging: {
+        ignorePaths: ["/docs/"]
+    }
+ });
 
 var express = require('express')
 var app = express()
