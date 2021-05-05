@@ -659,13 +659,29 @@ exports.addInsurancePolicy = function (body) {
         //   console.log("//////////////////", pcrInfoPair, "/////////////////");
         //   await exports.addPcrRequest(pcrInfoPair, body.id);
         // });
-        for (let i = 0; i < datos[1].length; i++) {
-          await exports.addPcrRequest(datos[1][i], body.id);
-        }
-        logger.info(
-          `Poliza añadida correctamente, address: ${hotelInsuranceAddress}`
-        );
-        resolve();
+
+        console.log(JSON.stringify(datos[1]))
+        console.log(datos[1].map(item => {
+          return addPcrRequest(item, body.id)
+        }))
+        resolve()
+        // Promise.all(datos[1].map(item => addPcrRequest(item, body.id)))
+        // .then(values => {
+        //   logger.info(values)
+        //   logger.info(
+        //     `Poliza añadida correctamente, address: ${hotelInsuranceAddress}`
+        //   )
+        //   resolve()
+        // }).catch(reason => {
+        //   logger.error(reason)
+        //   reject(reason)
+        // })
+
+        // for (let i = 0; i < datos[1].length; i++) {
+        //   await exports.addPcrRequest(datos[1][i], body.id);
+        // }
+
+
       })
       .catch((error) => {
         logger.error('Error al crear la póliza', error);
@@ -722,32 +738,34 @@ exports.getAllInsurancePolicy = function (body) {
  * no response value expected for this operation
  **/
 exports.addPcrRequest = function (body, insuranceId) {
-  return new Promise(async function (resolve, reject) {
-    const requestDate = parseInt(new Date().getTime() / 1000);
+  return new Promise(function (resolve, reject) {
+    const requestDate = parseInt(new Date().getTime() / 1000)
     // Create PCR
     createPCR(body, insuranceId, requestDate)
-      .catch((error) => {
-        logger.error('Error al crear contrato PCR: ', error);
-        reject(error);
-      })
-      .then((pcrAddress) => {
-        getInsuranceAddressByInsuranceId(insuranceId).then(
-          (insuranceAddress) => {
-            addPCR(body, insuranceAddress, requestDate, pcrAddress).then(
-              (res) => {
-                logger.info('PCR Añadida con éxito, address: ', pcrAddress);
-                resolve();
-              }
-            );
-          }
-        );
-      })
-      .catch((error) => {
-        logger.error('Error al añadir PCR a póliza: ', error);
-        reject(error);
-      });
-  });
-};
+    .then(pcrAddress => {
+      // getInsuranceAddressByInsuranceId(insuranceId)
+      // .then( insuranceAddress => {
+      //   addPCR(body, insuranceAddress, requestDate, pcrAddress)
+      //   .then( res => {
+      //       logger.info('PCR Añadida con éxito, address: ', pcrAddress)
+            resolve()
+      //   })
+      //   .catch(error => {
+      //     logger.error('Error al añadir PCR a póliza: ', error)
+      //     reject(error)
+      //   })
+      // })
+      // .catch(error => {
+      //   logger.error('Error al recuperar la dirección del contrato a partir del insuranceId: ', error)
+      //   reject(error)
+      // })
+    })
+    .catch((error) => {
+      logger.error('Error al crear contrato PCR: ', error)
+      reject(error);
+    })
+  })
+}
 
 /**
  * get all PCR Request of a customer
