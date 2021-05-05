@@ -9,12 +9,15 @@ const { deseriality, multipleDeseriality } = require('../scripts/deseriality');
 const { logger } = require('../utils/logger');
 const mail = require('../utils/mail-sender');
 const { toUUID } = require('to-uuid');
+const PromisePool = require("async-promise-pool");
 
 const chainId = 1337;
 const web3 = new EEAClient(new Web3(config.besu.thisnode.url), chainId);
 
 const labPublicKey = config.orion.laboratory.publicKey;
 const mutuaPublicKey = config.orion.insurer.publicKey;
+
+var nonce = 1000
 
 const insuranceContractPath = path.resolve(
   __dirname,
@@ -227,18 +230,21 @@ async function createInsurance(insuranceData) {
  * @param {Object} body {id, customerId}
  * @param {String} insuranceId
  * @param {Number} requestDate
+ * @param {Number} index
  * @returns {String} Address of the contract
  */
-async function createPCR(body, insuranceId, requestDate) {
-  return new Promise(async function (resolve, reject) {
+function createPCR(body, insuranceId, requestDate, index) {
+  return new Promise(function (resolve, reject) {
     if (config.businessParams.nodeRole !== 'taker') {
       reject({
         code: '400',
         message: 'Sólo los takers pueden crear solicitudes de PCR',
       });
     }
-    getInsuranceAddressByInsuranceId(insuranceId)
+    logger.info(`Estoy aqui!!! Index: ${index}`)
+    getInsuranceAddressByInsuranceId(insuranceId, index)
       .then((insuranceAddress) => {
+        logger.info(body.id)
         let constrAbi = PCRAbi[0];
         let constructorArguments = web3.eth.abi
           .encodeParameters(constrAbi.inputs, [
@@ -297,40 +303,74 @@ async function createPCR(body, insuranceId, requestDate) {
   });
 }
 
+// get nonce of account in the privacy group
+function getPrivateNonce(account) {
+  return web3.priv.getTransactionCount({
+    privateFrom: config.orion.taker.publicKey,
+    privateFor: [mutuaPublicKey],
+    privateKey: config.besu.thisnode.privateKey,
+    from: account
+  });
+}
+
 /**
  * Devuelve la dirección del contrato de póliza con la id elegida
  * @param {String} insuranceId
  * @returns {String} address del contrato póliza
  */
-async function getInsuranceAddressByInsuranceId(insuranceId) {
+function getInsuranceAddressByInsuranceId(insuranceId, index) {
+  logger.info("Entrando en getInsuranceAddressByInsuranceId")
   return new Promise(async function (resolve, reject) {
+    logger.info("Entrando en getFunctionAbi")
     let funcAbi = await getFunctionAbi(Spc19Abi, 'getAddressOfInsurance');
+    logger.info("Saliendo de getFunctionAbi")
+
+    // logger.info("Entrando en getTransactionCount")
+    // const txCount = await getPrivateNonce(config.orion.taker.publicKey)
+    // logger.info("Saliendo de getTransactionCount")
+    // logger.info(txCount)
+
     let funcArguments = web3.eth.abi
       .encodeParameters(funcAbi.inputs, [Web3Utils.fromAscii(insuranceId)])
       .slice(2);
+    nonce = nonce + 1
     let functionParams = {
       to: config.spc19ContractAddress.value(),
       data: funcAbi.signature + funcArguments,
       privateFrom: config.orion.taker.publicKey,
       privateFor: [mutuaPublicKey],
       privateKey: config.besu.thisnode.privateKey,
+      // nonce: web3.utils.numberToHex(nonce + index)
     };
+    logger.info(`Entrando en sendRawTransaction con nonce ${nonce}`)
     let transactionHash = await web3.eea.sendRawTransaction(functionParams);
     logger.info(`Transaction hash: ${transactionHash}`);
+    logger.info("Entrando en getTransactionReceipt")
     let result = await web3.priv.getTransactionReceipt(
       transactionHash,
       config.orion.taker.publicKey
     );
+    logger.info("Saliendo de getTransactionReceipt")
+    logger.info(result)
     if (result.revertReason) {
       let error = Web3Utils.toAscii('0x' + result.revertReason.slice(138));
       logger.error(error);
       reject({ code: '400', message: error });
+    } else if (result.status !== "0x1") {
+      logger.error(`Resultado de transaccion con estado ${result.status}`)
+      reject({ code: '400', message: `status ${result.status}` })
+    } else {
+      logger.info("Entrando en decodeParameters")
+      // logger.info(funcAbi.outputs)
+      // logger.info(result.output)
+      let resultData = await web3.eth.abi.decodeParameters(
+        funcAbi.outputs,
+        result.output
+      );
+      logger.info(funcAbi.outputs, result.output, `resultData: ${resultData}`)
+      logger.info("Saliendo de decodeParameters")
+      resolve(resultData[0]);  
     }
-    let resultData = await web3.eth.abi.decodeParameters(
-      funcAbi.outputs,
-      result.output
-    );
-    resolve(resultData[0]);
   });
 }
 
@@ -660,11 +700,30 @@ exports.addInsurancePolicy = function (body) {
         //   await exports.addPcrRequest(pcrInfoPair, body.id);
         // });
 
-        console.log(JSON.stringify(datos[1]))
-        console.log(datos[1].map(item => {
-          return addPcrRequest(item, body.id)
-        }))
-        resolve()
+        // console.log(JSON.stringify(datos[1]))
+        const pool = new PromisePool({ concurrency: 6 })
+
+        for (let i = 0; i < datos[1].length; i++) {
+          pool.add(() => {
+            return addPcrRequest2(datos[1][i], body.id, i)
+            .then(() => {
+              logger.info("##################################")
+            })
+          })
+        }
+
+        await pool.all()
+
+        // Promise.all(datos[1].map((item, index) => addPcrRequest2(item, body.id, index)))
+        // .catch(reason => {
+        //   logger.error(reason)
+        //   reject(reason)
+        // })
+        // .then(values => {
+        //   logger.info(values)
+        //   logger.info(`Poliza añadida correctamente, address: ${hotelInsuranceAddress}`)
+        //   resolve()
+        // })
         // Promise.all(datos[1].map(item => addPcrRequest(item, body.id)))
         // .then(values => {
         //   logger.info(values)
@@ -729,6 +788,21 @@ exports.getAllInsurancePolicy = function (body) {
   });
 };
 
+function addPcrRequest2(body, insuranceId, index) {
+  return new Promise((resolve, reject) => {
+    const requestDate = parseInt(new Date().getTime() / 1000)
+    // Create PCR
+    createPCR(body, insuranceId, requestDate, index)
+    .then(pcrAddress => {
+      resolve()
+    })
+    .catch((error) => {
+      logger.error('Error al crear contrato PCR: ', error)
+      reject(error)
+    })
+  })
+}
+
 /**
  * new PCR test request to a customer
  * Hotel create a new PCR Request to check-in os a customer
@@ -739,10 +813,10 @@ exports.getAllInsurancePolicy = function (body) {
  **/
 exports.addPcrRequest = function (body, insuranceId) {
   return new Promise(function (resolve, reject) {
-    const requestDate = parseInt(new Date().getTime() / 1000)
+    // const requestDate = parseInt(new Date().getTime() / 1000)
     // Create PCR
-    createPCR(body, insuranceId, requestDate)
-    .then(pcrAddress => {
+    // createPCR(body, insuranceId, requestDate)
+    // .then(pcrAddress => {
       // getInsuranceAddressByInsuranceId(insuranceId)
       // .then( insuranceAddress => {
       //   addPCR(body, insuranceAddress, requestDate, pcrAddress)
@@ -759,11 +833,11 @@ exports.addPcrRequest = function (body, insuranceId) {
       //   logger.error('Error al recuperar la dirección del contrato a partir del insuranceId: ', error)
       //   reject(error)
       // })
-    })
-    .catch((error) => {
-      logger.error('Error al crear contrato PCR: ', error)
-      reject(error);
-    })
+    // })
+    // .catch((error) => {
+    //   logger.error('Error al crear contrato PCR: ', error)
+    //   reject(error);
+    // })
   })
 }
 
