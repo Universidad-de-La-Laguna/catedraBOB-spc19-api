@@ -8,6 +8,7 @@ const config = require('../config');
 const { deseriality, multipleDeseriality } = require('../scripts/deseriality');
 const { logger } = require("../utils/logger")
 const mail = require('../utils/mail-sender');
+const { toUUID } = require('to-uuid');
 
 const chainId = 1337;
 const web3 = new EEAClient(new Web3(config.besu.thisnode.url), chainId);
@@ -264,11 +265,11 @@ async function createPCR(body, insuranceId, requestDate) {
               ) {
                 // Mandar mensaje con los datos del cliente
                 mail.sendEmailToLaboratory(
-                  insuranceId, 
-                  body.id, 
+                  toUUID(insuranceId), 
+                  toUUID(body.id), 
                   pcrAddress, 
                   {
-                    customerId: body.customerId,
+                    customerId: toUUID(body.customerId),
                     customerFullName: body.customerFullName,
                     customerEmail: body.customerEmail,
                     customerTelephone: body.customerTelephone
@@ -277,11 +278,11 @@ async function createPCR(body, insuranceId, requestDate) {
               } else {
                 // Mandar mensaje sin los datos del cliente
                 mail.sendEmailToLaboratory(
-                  insuranceId,
-                  body.id,
+                  toUUID(insuranceId),
+                  toUUID(body.id),
                   pcrAddress,
                   {
-                    customerId: body.customerId
+                    customerId: toUUID(body.customerId)
                   }
                 )
               }

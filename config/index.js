@@ -13,7 +13,7 @@ module.exports = {
                 PASSWORD: process.env.EMAIL_SMTP_AUTH_PASSWORD || 'Spc19Project$'
             }
         },
-        LINK_DEST_UPDATEPCR: process.env.LINKDESTUPDATEPCR || 'http://localhost:8000/pcr/<INSURANCEID>/<PCRREQUESTID>?contractaddress=<PCRCONTRACTADDRESS>',
+        LINK_DEST_UPDATEPCR: process.env.LINKDESTUPDATEPCR || 'http://localhost:8000/lab/insurance/<INSURANCEID>/pcr/<PCRREQUESTID>/contract/<PCRCONTRACTADDRESS>',
         laboratoryEmail: process.env.LABORATORYEMAIL || 'spc19-laboratory@mailinator.com'
     },
     JWT: {
