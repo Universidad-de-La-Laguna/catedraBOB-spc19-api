@@ -6,7 +6,7 @@ const Web3Utils = require('web3-utils');
 const EEAClient = require('web3-eea');
 const config = require('../config');
 const { deseriality, multipleDeseriality } = require('../scripts/deseriality');
-const { logger } = require("../utils/logger")
+const { logger } = require('../utils/logger');
 const mail = require('../utils/mail-sender');
 const { toUUID } = require('to-uuid');
 
@@ -215,10 +215,9 @@ async function createInsurance(insuranceData) {
         logger.error(error);
         reject({ code: '400', message: error });
       }
-      resolve(insuranceAddress);  
-    }
-    catch (error) {
-      reject(error)
+      resolve(insuranceAddress);
+    } catch (error) {
+      reject(error);
     }
   });
 }
@@ -265,16 +264,16 @@ async function createPCR(body, insuranceId, requestDate) {
               ) {
                 // Mandar mensaje con los datos del cliente
                 mail.sendEmailToLaboratory(
-                  toUUID(insuranceId), 
-                  toUUID(body.id), 
-                  pcrAddress, 
+                  toUUID(insuranceId),
+                  toUUID(body.id),
+                  pcrAddress,
                   {
                     customerId: toUUID(body.customerId),
                     customerFullName: body.customerFullName,
                     customerEmail: body.customerEmail,
-                    customerTelephone: body.customerTelephone
+                    customerTelephone: body.customerTelephone,
                   }
-                )
+                );
               } else {
                 // Mandar mensaje sin los datos del cliente
                 mail.sendEmailToLaboratory(
@@ -282,9 +281,9 @@ async function createPCR(body, insuranceId, requestDate) {
                   toUUID(body.id),
                   pcrAddress,
                   {
-                    customerId: toUUID(body.customerId)
+                    customerId: toUUID(body.customerId),
                   }
-                )
+                );
               }
 
               resolve(pcrAddress);
@@ -653,24 +652,20 @@ exports.addInsurancePolicy = function (body) {
   return new Promise(async function (resolve, reject) {
     const datos = insuranceDataObjectToArray(body);
     createInsurance(datos[0])
-      .then((hotelInsuranceAddress) => {
+      .then(async (hotelInsuranceAddress) => {
         // TODO
         // Añadir el evento de checkpayment y el de positive PCR para mutua y hotel
-        Promise.all(
-          datos[1].map(async (pcrInfoPair) => {
-            await exports.addPcrRequest(pcrInfoPair, body.id);
-          })
-        )
-          .then((res) => {
-            logger.info(
-              `Poliza añadida correctamente, address: ${hotelInsuranceAddress}`
-            );
-            resolve();
-          })
-          .catch((error) => {
-            logger.error('Error al crear las PCR correspondientes', error);
-            reject(error);
-          });
+        // datos[1].map(async (pcrInfoPair) => {
+        //   console.log("//////////////////", pcrInfoPair, "/////////////////");
+        //   await exports.addPcrRequest(pcrInfoPair, body.id);
+        // });
+        for (let i = 0; i < datos[1].length; i++) {
+          await exports.addPcrRequest(datos[1][i], body.id);
+        }
+        logger.info(
+          `Poliza añadida correctamente, address: ${hotelInsuranceAddress}`
+        );
+        resolve();
       })
       .catch((error) => {
         logger.error('Error al crear la póliza', error);
