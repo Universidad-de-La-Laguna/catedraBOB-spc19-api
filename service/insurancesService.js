@@ -19,8 +19,6 @@ const web3 = new EEAClient(new Web3(config.besu.thisnode.url), chainId);
 const labPublicKey = config.orion.laboratory.publicKey;
 const mutuaPublicKey = config.orion.insurer.publicKey;
 
-var nonce = 1000
-
 const insuranceContractPath = path.resolve(
   __dirname,
   '../',
@@ -243,7 +241,6 @@ function createPCR(body, insuranceId, requestDate, index) {
         message: 'Sólo los takers pueden crear solicitudes de PCR',
       });
     }
-    logger.info(`Estoy aqui!!! Index: ${index}`)
     getInsuranceAddressByInsuranceId(insuranceId, index)
       .then((insuranceAddress) => {
         logger.info(body.id)
@@ -306,51 +303,46 @@ function createPCR(body, insuranceId, requestDate, index) {
 }
 
 // get nonce of account in the privacy group
-function getPrivateNonce(privateKeyBuffer) {
-  // from = `0x${privateToAddress(privateKeyBuffer).toString("hex")}`
-  from = '0x627306090abab3a6e1400e9345bc60c78a8bef57'
-  console.log(`from: ${from}`)
-
+function getPrivateNonce(privateKey) {
   return web3.priv.getTransactionCount({
-    from,
+    from: web3.eth.accounts.privateKeyToAccount(`0x${privateKey}`).address,
     privateFrom: config.orion.taker.publicKey,
     privateFor: [mutuaPublicKey],
     privacyGroupId: 'DyAOiF/ynpc+JXa2YAGB0bCitSlOMNm+ShmB/7M6C4w='
   })
 }
 
-function getPublicNonce(account) {
-  return web3.eth.getTransactionCount('0x627306090abab3a6e1400e9345bc60c78a8bef57', "pending")
+// get public nonce of account
+function getPublicNonce(privateKey) {
+  return web3.eth.getTransactionCount(
+    web3.eth.accounts.privateKeyToAccount(`0x${privateKey}`).address,
+    "pending"
+  )
 }
 
 // create and sign PMT
 function sendPMT(sender, enclaveKey, nonce) {
   return new Promise((resolve, reject) => {
     const rawTx = {
-      nonce, // PMT nonce
+      nonce: web3.utils.numberToHex(nonce), // PMT nonce
       from: sender,
-      to: config.spc19ContractAddress.value(), // privacy precompile address
+      to: "0x000000000000000000000000000000000000007e", // privacy precompile address
       data: enclaveKey,
-      gas:'0xa00000'
-      // gasLimit: "0x5a88"
+      gasLimit: "0x5a88"
     }
   
-    const pkey = `0x${config.besu.thisnode.privateKey}`
-    console.log(pkey)
-
-    web3.eth.accounts.signTransaction(rawTx, pkey)
+    web3.eth.accounts.signTransaction(rawTx, `0x${config.besu.thisnode.privateKey}`)
     .then(signed => {
       logger.info(`Signed transaction: ${JSON.stringify(signed)}`)
   
-      web3.eth.sendSignedTransaction(signed.rawTransaction, (error, rcpt) => {
-        if (error) {
-          logger.error(error)
-          reject(error);
-        }
-        else {
-          logger.info(`RCPT: ${rcpt}`)
-          resolve(rcpt);  
-        }
+      web3.eth.sendSignedTransaction(signed.rawTransaction)
+      .once("receipt", rcpt => {
+        logger.info("RCPT")
+        resolve(rcpt)
+      })
+      .on("error", error => {
+        logger.error(error)
+        reject(error)
       })
     })
     .catch(reject)
@@ -363,81 +355,75 @@ function sendPMT(sender, enclaveKey, nonce) {
  * @returns {String} address del contrato póliza
  */
 function getInsuranceAddressByInsuranceId(insuranceId, index) {
-  logger.info("Entrando en getInsuranceAddressByInsuranceId")
   return new Promise(async function (resolve, reject) {
-    logger.info("Entrando en getFunctionAbi")
-    let funcAbi = await getFunctionAbi(Spc19Abi, 'getAddressOfInsurance');
-    logger.info("Saliendo de getFunctionAbi")
-
-    logger.info("Entrando en getPrivateNonce")
+    // Obtenemos el nonce privado
     const privateNonce = await getPrivateNonce(config.besu.thisnode.privateKey)
-    logger.info("Saliendo de getPrivateNonce")
-    logger.info(`privateNonce: ${privateNonce}`)
-    logger.info(`nonce: ${privateNonce + index + 1}`)
 
-    logger.info("Entrando en getPublicNonce")
+    // Obtenemos el nonce publico
     const publicNonce = await getPublicNonce(config.besu.thisnode.privateKey)
-    logger.info("Saliendo de getPublicNonce")
-    logger.info(`publicNonce: ${publicNonce}`)
 
+    // Obtenemos la interfaz de la transaccion a llamar
+    let funcAbi = await getFunctionAbi(Spc19Abi, 'getAddressOfInsurance')
+
+    // Codificamos los parámetros de entrada
     let funcArguments = web3.eth.abi
       .encodeParameters(funcAbi.inputs, [Web3Utils.fromAscii(insuranceId)])
       .slice(2);
 
+    // Preparamos la llamada a la transacción
     let functionParams = {
-      to: config.spc19ContractAddress.value(),
+      to: config.spc19ContractAddress.value(), // contrato al que llamar
       data: funcAbi.signature + funcArguments,
       privateFrom: config.orion.taker.publicKey,
       privateFor: [mutuaPublicKey],
       privateKey: config.besu.thisnode.privateKey,
-      nonce: privateNonce + index
-    };
-    logger.info(`Entrando en distributeRawTransaction con nonce ${privateNonce}`)
-    // FIXME: Para poder enviar transacciones cocurrentes, no se puede usar sendRawTransaction. Ver: https://besu.hyperledger.org/en/stable/HowTo/Send-Transactions/Concurrent-Private-Transactions/
-    // let transactionHash = await web3.eea.sendRawTransaction(functionParams);
+      nonce: privateNonce + index // nonce privado diferente para cada tx del pool invocada
+    }
+
+    // distribute payload to participants
     let enclaveKey = await web3.priv.distributeRawTransaction(functionParams)
-    logger.info(`Saliendo de distributeRawTransaction con enclaveKey ${enclaveKey}`)
 
-    logger.info(`Entrando en sendPMT con public nonce ${publicNonce}`)
-    let transactionHash = await sendPMT('0x627306090abab3a6e1400e9345bc60c78a8bef57', enclaveKey, publicNonce + index)
-    logger.info(`Saliendo de sendPMT con public nonce ${publicNonce}`)
-    logger.info(`Transaction hash: ${transactionHash}`);
+    // create and sign PMT
+    let pmtRcpt = await sendPMT(
+      web3.eth.accounts.privateKeyToAccount(`0x${config.besu.thisnode.privateKey}`).address,
+      enclaveKey,
+      publicNonce + index // nonce público diferente para cada tx del pool invocada
+    )
+      logger.info("***********************")
+      logger.info(pmtRcpt)
 
-    logger.info("Entrando en getTransactionReceipt")
-    // let result = await web3.priv.getTransactionReceipt(
-    //   transactionHash,
-    //   config.orion.taker.publicKey
-    // );
-    web3.eth.getTransactionReceipt(transactionHash, (error, result) => {
-      if (error) {
-        logger.error(error)
-        reject(error)
-      }
-      else {
-        logger.info("Saliendo de getTransactionReceipt")
-        console.log(result)
-    
-        // if (result.revertReason) {
-        //   let error = Web3Utils.toAscii('0x' + result.revertReason.slice(138));
-        //   logger.error(error);
-        //   reject({ code: '400', message: error });
-        // } else if (result.status !== "0x1") {
-        //   logger.error(`Resultado de transaccion con estado ${result.status}`)
-        //   reject({ code: '400', message: `status ${result.status}` })
-        // } else {
-        //   logger.info("Entrando en decodeParameters")
-        //   let resultData = await web3.eth.abi.decodeParameters(
-        //     funcAbi.outputs,
-        //     result.output
-        //   );
-        //   logger.info(funcAbi.outputs, result.output, `resultData: ${resultData}`)
-        //   logger.info("Saliendo de decodeParameters")
-        //   resolve(resultData[0]);  
-        // }
-    
+    // Obtenemos el recibo de la transacción
+    web3.priv.getTransactionReceipt(pmtRcpt.transactionHash, config.besu.thisnode.privateKey)
+    .catch(reject)
+    .then(async privTxRcpt => {
+      logger.info(
+        `=== Private TX ${privTxRcpt.transactionHash}\n` +
+          `  > Status ${privTxRcpt.status}\n` +
+          `  > Block #${pmtRcpt.blockNumber}\n` +
+          `  > PMT Index #${pmtRcpt.transactionIndex}\n` +
+          `  > PMT Hash ${pmtRcpt.transactionHash}\n`
+      )
+
+      // Comprobamos si hay error en el recibo de la transacción
+      if (privTxRcpt.revertReason) {
+        let error = Web3Utils.toAscii('0x' + privTxRcpt.revertReason.slice(138));
+        logger.error(error);
+        reject({ code: '400', message: error })
+      } else if (privTxRcpt.status !== "0x1") {
+        logger.error(`Resultado de transaccion con estado ${privTxRcpt.status}`)
+        reject({ code: '400', message: `status ${privTxRcpt.status}` })
+      } else {
+        // Decodificamos el resultado
+        let resultData = await web3.eth.abi.decodeParameters(
+          funcAbi.outputs,
+          privTxRcpt.output
+        )
+
+        // Devolvemos el resultado
+        resolve(resultData[0])
       }
     })
-  });
+  })
 }
 
 /**
@@ -774,6 +760,7 @@ exports.addInsurancePolicy = function (body) {
             return addPcrRequest2(datos[1][i], body.id, i)
             .then(() => {
               logger.info("##################################")
+              resolve()
             })
           })
         }
@@ -860,6 +847,22 @@ function addPcrRequest2(body, insuranceId, index) {
     // Create PCR
     createPCR(body, insuranceId, requestDate, index)
     .then(pcrAddress => {
+      // getInsuranceAddressByInsuranceId(insuranceId, index)
+      // .then( insuranceAddress => {
+      //   addPCR(body, insuranceAddress, requestDate, pcrAddress)
+      //   .then(res => {
+      //     logger.info('PCR Añadida con éxito, address: ', pcrAddress)
+      //     resolve()
+      //   })
+      //   .catch(error => {
+      //     logger.error('Error al añadir PCR a póliza: ', error)
+      //     reject(error)
+      //   })
+      // })
+      // .catch(error => {
+      //   logger.error('Error al recuperar la dirección del contrato a partir del insuranceId: ', error)
+      //   reject(error)
+      // })
       resolve()
     })
     .catch((error) => {
@@ -888,7 +891,7 @@ exports.addPcrRequest = function (body, insuranceId) {
       //   addPCR(body, insuranceAddress, requestDate, pcrAddress)
       //   .then( res => {
       //       logger.info('PCR Añadida con éxito, address: ', pcrAddress)
-            resolve()
+            // resolve()
       //   })
       //   .catch(error => {
       //     logger.error('Error al añadir PCR a póliza: ', error)
