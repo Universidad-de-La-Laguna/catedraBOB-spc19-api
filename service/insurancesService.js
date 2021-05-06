@@ -10,6 +10,8 @@ const { logger } = require('../utils/logger');
 const mail = require('../utils/mail-sender');
 const { toUUID } = require('to-uuid');
 const PromisePool = require("async-promise-pool");
+// const EthereumTx = require("ethereumjs-tx").Transaction;
+// const ethTx = require('ethereumjs-tx')
 
 const chainId = 1337;
 const web3 = new EEAClient(new Web3(config.besu.thisnode.url), chainId);
@@ -315,13 +317,44 @@ function getPrivateNonce(privateKeyBuffer) {
     privateFor: [mutuaPublicKey],
     privacyGroupId: 'DyAOiF/ynpc+JXa2YAGB0bCitSlOMNm+ShmB/7M6C4w='
   })
+}
 
-  // return web3.priv.getTransactionCount({
-  //   privateFrom: config.orion.taker.publicKey,
-  //   privateFor: [mutuaPublicKey],
-  //   privateKey: config.besu.thisnode.privateKey,
-  //   from: account
-  // });
+function getPublicNonce(account) {
+  return web3.eth.getTransactionCount('0x627306090abab3a6e1400e9345bc60c78a8bef57', "pending")
+}
+
+// create and sign PMT
+function sendPMT(sender, enclaveKey, nonce) {
+  return new Promise((resolve, reject) => {
+    const rawTx = {
+      nonce, // PMT nonce
+      from: sender,
+      to: config.spc19ContractAddress.value(), // privacy precompile address
+      data: enclaveKey,
+      gas:'0xa00000'
+      // gasLimit: "0x5a88"
+    }
+  
+    const pkey = `0x${config.besu.thisnode.privateKey}`
+    console.log(pkey)
+
+    web3.eth.accounts.signTransaction(rawTx, pkey)
+    .then(signed => {
+      logger.info(`Signed transaction: ${JSON.stringify(signed)}`)
+  
+      web3.eth.sendSignedTransaction(signed.rawTransaction, (error, rcpt) => {
+        if (error) {
+          logger.error(error)
+          reject(error);
+        }
+        else {
+          logger.info(`RCPT: ${rcpt}`)
+          resolve(rcpt);  
+        }
+      })
+    })
+    .catch(reject)
+  })
 }
 
 /**
@@ -336,55 +369,74 @@ function getInsuranceAddressByInsuranceId(insuranceId, index) {
     let funcAbi = await getFunctionAbi(Spc19Abi, 'getAddressOfInsurance');
     logger.info("Saliendo de getFunctionAbi")
 
-    logger.info("Entrando en getTransactionCount")
-    const txCount = await getPrivateNonce(config.besu.thisnode.privateKey)
-    logger.info("Saliendo de getTransactionCount")
-    logger.info(`txCount: ${txCount}`)
-    // logger.info(`nonce: ${web3.utils.numberToHex(txCount + index)}`)
-    logger.info(`nonce: ${txCount + index + 1}`)
+    logger.info("Entrando en getPrivateNonce")
+    const privateNonce = await getPrivateNonce(config.besu.thisnode.privateKey)
+    logger.info("Saliendo de getPrivateNonce")
+    logger.info(`privateNonce: ${privateNonce}`)
+    logger.info(`nonce: ${privateNonce + index + 1}`)
+
+    logger.info("Entrando en getPublicNonce")
+    const publicNonce = await getPublicNonce(config.besu.thisnode.privateKey)
+    logger.info("Saliendo de getPublicNonce")
+    logger.info(`publicNonce: ${publicNonce}`)
 
     let funcArguments = web3.eth.abi
       .encodeParameters(funcAbi.inputs, [Web3Utils.fromAscii(insuranceId)])
       .slice(2);
-    // nonce = nonce + 1
+
     let functionParams = {
       to: config.spc19ContractAddress.value(),
       data: funcAbi.signature + funcArguments,
       privateFrom: config.orion.taker.publicKey,
       privateFor: [mutuaPublicKey],
       privateKey: config.besu.thisnode.privateKey,
-      nonce: txCount + index + 1
+      nonce: privateNonce + index
     };
-    logger.info(`Entrando en sendRawTransaction con nonce ${nonce}`)
+    logger.info(`Entrando en distributeRawTransaction con nonce ${privateNonce}`)
     // FIXME: Para poder enviar transacciones cocurrentes, no se puede usar sendRawTransaction. Ver: https://besu.hyperledger.org/en/stable/HowTo/Send-Transactions/Concurrent-Private-Transactions/
-    let transactionHash = await web3.eea.sendRawTransaction(functionParams);
+    // let transactionHash = await web3.eea.sendRawTransaction(functionParams);
+    let enclaveKey = await web3.priv.distributeRawTransaction(functionParams)
+    logger.info(`Saliendo de distributeRawTransaction con enclaveKey ${enclaveKey}`)
+
+    logger.info(`Entrando en sendPMT con public nonce ${publicNonce}`)
+    let transactionHash = await sendPMT('0x627306090abab3a6e1400e9345bc60c78a8bef57', enclaveKey, publicNonce + index)
+    logger.info(`Saliendo de sendPMT con public nonce ${publicNonce}`)
     logger.info(`Transaction hash: ${transactionHash}`);
+
     logger.info("Entrando en getTransactionReceipt")
-    let result = await web3.priv.getTransactionReceipt(
-      transactionHash,
-      config.orion.taker.publicKey
-    );
-    logger.info("Saliendo de getTransactionReceipt")
-    logger.info(result)
-    if (result.revertReason) {
-      let error = Web3Utils.toAscii('0x' + result.revertReason.slice(138));
-      logger.error(error);
-      reject({ code: '400', message: error });
-    } else if (result.status !== "0x1") {
-      logger.error(`Resultado de transaccion con estado ${result.status}`)
-      reject({ code: '400', message: `status ${result.status}` })
-    } else {
-      logger.info("Entrando en decodeParameters")
-      // logger.info(funcAbi.outputs)
-      // logger.info(result.output)
-      let resultData = await web3.eth.abi.decodeParameters(
-        funcAbi.outputs,
-        result.output
-      );
-      logger.info(funcAbi.outputs, result.output, `resultData: ${resultData}`)
-      logger.info("Saliendo de decodeParameters")
-      resolve(resultData[0]);  
-    }
+    // let result = await web3.priv.getTransactionReceipt(
+    //   transactionHash,
+    //   config.orion.taker.publicKey
+    // );
+    web3.eth.getTransactionReceipt(transactionHash, (error, result) => {
+      if (error) {
+        logger.error(error)
+        reject(error)
+      }
+      else {
+        logger.info("Saliendo de getTransactionReceipt")
+        console.log(result)
+    
+        // if (result.revertReason) {
+        //   let error = Web3Utils.toAscii('0x' + result.revertReason.slice(138));
+        //   logger.error(error);
+        //   reject({ code: '400', message: error });
+        // } else if (result.status !== "0x1") {
+        //   logger.error(`Resultado de transaccion con estado ${result.status}`)
+        //   reject({ code: '400', message: `status ${result.status}` })
+        // } else {
+        //   logger.info("Entrando en decodeParameters")
+        //   let resultData = await web3.eth.abi.decodeParameters(
+        //     funcAbi.outputs,
+        //     result.output
+        //   );
+        //   logger.info(funcAbi.outputs, result.output, `resultData: ${resultData}`)
+        //   logger.info("Saliendo de decodeParameters")
+        //   resolve(resultData[0]);  
+        // }
+    
+      }
+    })
   });
 }
 
