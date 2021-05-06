@@ -84,7 +84,7 @@ function createContract(bytecode, privFrom, privKey, privFor) {
  * @param {Web3} web3
  * @returns {Object} Abi de la función elegida
  */
-async function getFunctionAbi(abi, functionName) {
+function getFunctionAbi(abi, functionName) {
   const contract = new web3.eth.Contract(abi);
   const functionAbi = contract._jsonInterface.find((e) => {
     return e.name === functionName;
@@ -304,13 +304,24 @@ function createPCR(body, insuranceId, requestDate, index) {
 }
 
 // get nonce of account in the privacy group
-function getPrivateNonce(account) {
+function getPrivateNonce(privateKeyBuffer) {
+  // from = `0x${privateToAddress(privateKeyBuffer).toString("hex")}`
+  from = '0x627306090abab3a6e1400e9345bc60c78a8bef57'
+  console.log(`from: ${from}`)
+
   return web3.priv.getTransactionCount({
+    from,
     privateFrom: config.orion.taker.publicKey,
     privateFor: [mutuaPublicKey],
-    privateKey: config.besu.thisnode.privateKey,
-    from: account
-  });
+    privacyGroupId: 'DyAOiF/ynpc+JXa2YAGB0bCitSlOMNm+ShmB/7M6C4w='
+  })
+
+  // return web3.priv.getTransactionCount({
+  //   privateFrom: config.orion.taker.publicKey,
+  //   privateFor: [mutuaPublicKey],
+  //   privateKey: config.besu.thisnode.privateKey,
+  //   from: account
+  // });
 }
 
 /**
@@ -325,24 +336,27 @@ function getInsuranceAddressByInsuranceId(insuranceId, index) {
     let funcAbi = await getFunctionAbi(Spc19Abi, 'getAddressOfInsurance');
     logger.info("Saliendo de getFunctionAbi")
 
-    // logger.info("Entrando en getTransactionCount")
-    // const txCount = await getPrivateNonce(config.orion.taker.publicKey)
-    // logger.info("Saliendo de getTransactionCount")
-    // logger.info(txCount)
+    logger.info("Entrando en getTransactionCount")
+    const txCount = await getPrivateNonce(config.besu.thisnode.privateKey)
+    logger.info("Saliendo de getTransactionCount")
+    logger.info(`txCount: ${txCount}`)
+    // logger.info(`nonce: ${web3.utils.numberToHex(txCount + index)}`)
+    logger.info(`nonce: ${txCount + index + 1}`)
 
     let funcArguments = web3.eth.abi
       .encodeParameters(funcAbi.inputs, [Web3Utils.fromAscii(insuranceId)])
       .slice(2);
-    nonce = nonce + 1
+    // nonce = nonce + 1
     let functionParams = {
       to: config.spc19ContractAddress.value(),
       data: funcAbi.signature + funcArguments,
       privateFrom: config.orion.taker.publicKey,
       privateFor: [mutuaPublicKey],
       privateKey: config.besu.thisnode.privateKey,
-      // nonce: web3.utils.numberToHex(nonce + index)
+      nonce: txCount + index + 1
     };
     logger.info(`Entrando en sendRawTransaction con nonce ${nonce}`)
+    // FIXME: Para poder enviar transacciones cocurrentes, no se puede usar sendRawTransaction. Ver: https://besu.hyperledger.org/en/stable/HowTo/Send-Transactions/Concurrent-Private-Transactions/
     let transactionHash = await web3.eea.sendRawTransaction(functionParams);
     logger.info(`Transaction hash: ${transactionHash}`);
     logger.info("Entrando en getTransactionReceipt")
