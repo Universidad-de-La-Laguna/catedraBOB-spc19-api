@@ -10,8 +10,7 @@ const { logger } = require('../utils/logger');
 const mail = require('../utils/mail-sender');
 const { toUUID } = require('to-uuid');
 const PromisePool = require("async-promise-pool");
-// const EthereumTx = require("ethereumjs-tx").Transaction;
-// const ethTx = require('ethereumjs-tx')
+const { getFunctionAbi, getContractAddress, sendParallelTransaction } = require('../utils/web3-utils')
 
 const chainId = 1337;
 const web3 = new EEAClient(new Web3(config.besu.thisnode.url), chainId);
@@ -77,37 +76,6 @@ function createContract(bytecode, privFrom, privKey, privFor) {
   });
 }
 
-/**
- * Obtiene el abi (datos de una función en solidity) de la función elegida
- * @param {Object} abi
- * @param {String} functionName
- * @param {Web3} web3
- * @returns {Object} Abi de la función elegida
- */
-function getFunctionAbi(abi, functionName) {
-  const contract = new web3.eth.Contract(abi);
-  const functionAbi = contract._jsonInterface.find((e) => {
-    return e.name === functionName;
-  });
-  return functionAbi;
-}
-
-/**
- * Obtiene la dirección del contrato añadido en la transacción elegida
- * @param {String} transactionHash
- * @param {String} pubKey
- * @param {Web3} web3
- * @returns {String} Dirección del contrato
- */
-async function getContractAddress(transactionHash, pubKey) {
-  logger.info('Getting contractAddress from txHash: ', transactionHash);
-  const privateTransactionReceipt = await web3.priv.getTransactionReceipt(
-    transactionHash,
-    pubKey
-  );
-  logger.info(`Private Transaction Receipt: ${privateTransactionReceipt}`);
-  return privateTransactionReceipt.contractAddress;
-}
 
 /**
  *
@@ -302,53 +270,6 @@ function createPCR(body, insuranceId, requestDate, index) {
   });
 }
 
-// get nonce of account in the privacy group
-function getPrivateNonce(privateKey) {
-  return web3.priv.getTransactionCount({
-    from: web3.eth.accounts.privateKeyToAccount(`0x${privateKey}`).address,
-    privateFrom: config.orion.taker.publicKey,
-    privateFor: [mutuaPublicKey],
-    privacyGroupId: 'DyAOiF/ynpc+JXa2YAGB0bCitSlOMNm+ShmB/7M6C4w='
-  })
-}
-
-// get public nonce of account
-function getPublicNonce(privateKey) {
-  return web3.eth.getTransactionCount(
-    web3.eth.accounts.privateKeyToAccount(`0x${privateKey}`).address,
-    "pending"
-  )
-}
-
-// create and sign PMT
-function sendPMT(sender, enclaveKey, nonce) {
-  return new Promise((resolve, reject) => {
-    const rawTx = {
-      nonce: web3.utils.numberToHex(nonce), // PMT nonce
-      from: sender,
-      to: "0x000000000000000000000000000000000000007e", // privacy precompile address
-      data: enclaveKey,
-      gasLimit: "0x5a88"
-    }
-  
-    web3.eth.accounts.signTransaction(rawTx, `0x${config.besu.thisnode.privateKey}`)
-    .then(signed => {
-      logger.info(`Signed transaction: ${JSON.stringify(signed)}`)
-  
-      web3.eth.sendSignedTransaction(signed.rawTransaction)
-      .once("receipt", rcpt => {
-        logger.info("RCPT")
-        resolve(rcpt)
-      })
-      .on("error", error => {
-        logger.error(error)
-        reject(error)
-      })
-    })
-    .catch(reject)
-  })
-}
-
 /**
  * Devuelve la dirección del contrato de póliza con la id elegida
  * @param {String} insuranceId
@@ -356,12 +277,6 @@ function sendPMT(sender, enclaveKey, nonce) {
  */
 function getInsuranceAddressByInsuranceId(insuranceId, index) {
   return new Promise(async function (resolve, reject) {
-    // Obtenemos el nonce privado
-    const privateNonce = await getPrivateNonce(config.besu.thisnode.privateKey)
-
-    // Obtenemos el nonce publico
-    const publicNonce = await getPublicNonce(config.besu.thisnode.privateKey)
-
     // Obtenemos la interfaz de la transaccion a llamar
     let funcAbi = await getFunctionAbi(Spc19Abi, 'getAddressOfInsurance')
 
@@ -377,52 +292,30 @@ function getInsuranceAddressByInsuranceId(insuranceId, index) {
       privateFrom: config.orion.taker.publicKey,
       privateFor: [mutuaPublicKey],
       privateKey: config.besu.thisnode.privateKey,
-      nonce: privateNonce + index // nonce privado diferente para cada tx del pool invocada
+      // nonce: privateNonce + index // nonce privado diferente para cada tx del pool invocada
     }
 
-    // distribute payload to participants
-    let enclaveKey = await web3.priv.distributeRawTransaction(functionParams)
+    // Enviamos la transacción
+    const privTxRcpt = await sendParallelTransaction(functionParams, index)
 
-    // create and sign PMT
-    let pmtRcpt = await sendPMT(
-      web3.eth.accounts.privateKeyToAccount(`0x${config.besu.thisnode.privateKey}`).address,
-      enclaveKey,
-      publicNonce + index // nonce público diferente para cada tx del pool invocada
-    )
-      logger.info("***********************")
-      logger.info(pmtRcpt)
-
-    // Obtenemos el recibo de la transacción
-    web3.priv.getTransactionReceipt(pmtRcpt.transactionHash, config.besu.thisnode.privateKey)
-    .catch(reject)
-    .then(async privTxRcpt => {
-      logger.info(
-        `=== Private TX ${privTxRcpt.transactionHash}\n` +
-          `  > Status ${privTxRcpt.status}\n` +
-          `  > Block #${pmtRcpt.blockNumber}\n` +
-          `  > PMT Index #${pmtRcpt.transactionIndex}\n` +
-          `  > PMT Hash ${pmtRcpt.transactionHash}\n`
+    // Comprobamos si hay error en el recibo de la transacción
+    if (privTxRcpt.revertReason) {
+      let error = Web3Utils.toAscii('0x' + privTxRcpt.revertReason.slice(138));
+      logger.error(error);
+      reject({ code: '400', message: error })
+    } else if (privTxRcpt.status !== "0x1") {
+      logger.error(`Resultado de transaccion con estado ${privTxRcpt.status}`)
+      reject({ code: '400', message: `status ${privTxRcpt.status}` })
+    } else {
+      // Decodificamos el resultado
+      let resultData = await web3.eth.abi.decodeParameters(
+        funcAbi.outputs,
+        privTxRcpt.output
       )
 
-      // Comprobamos si hay error en el recibo de la transacción
-      if (privTxRcpt.revertReason) {
-        let error = Web3Utils.toAscii('0x' + privTxRcpt.revertReason.slice(138));
-        logger.error(error);
-        reject({ code: '400', message: error })
-      } else if (privTxRcpt.status !== "0x1") {
-        logger.error(`Resultado de transaccion con estado ${privTxRcpt.status}`)
-        reject({ code: '400', message: `status ${privTxRcpt.status}` })
-      } else {
-        // Decodificamos el resultado
-        let resultData = await web3.eth.abi.decodeParameters(
-          funcAbi.outputs,
-          privTxRcpt.output
-        )
-
-        // Devolvemos el resultado
-        resolve(resultData[0])
-      }
-    })
+      // Devolvemos el resultado
+      resolve(resultData[0])
+    }
   })
 }
 
@@ -745,14 +638,7 @@ exports.addInsurancePolicy = function (body) {
     const datos = insuranceDataObjectToArray(body);
     createInsurance(datos[0])
       .then(async (hotelInsuranceAddress) => {
-        // TODO
-        // Añadir el evento de checkpayment y el de positive PCR para mutua y hotel
-        // datos[1].map(async (pcrInfoPair) => {
-        //   console.log("//////////////////", pcrInfoPair, "/////////////////");
-        //   await exports.addPcrRequest(pcrInfoPair, body.id);
-        // });
-
-        // console.log(JSON.stringify(datos[1]))
+        // Paralelizamos la creación de las PCR
         const pool = new PromisePool({ concurrency: 6 })
 
         for (let i = 0; i < datos[1].length; i++) {
@@ -766,34 +652,6 @@ exports.addInsurancePolicy = function (body) {
         }
 
         await pool.all()
-
-        // Promise.all(datos[1].map((item, index) => addPcrRequest2(item, body.id, index)))
-        // .catch(reason => {
-        //   logger.error(reason)
-        //   reject(reason)
-        // })
-        // .then(values => {
-        //   logger.info(values)
-        //   logger.info(`Poliza añadida correctamente, address: ${hotelInsuranceAddress}`)
-        //   resolve()
-        // })
-        // Promise.all(datos[1].map(item => addPcrRequest(item, body.id)))
-        // .then(values => {
-        //   logger.info(values)
-        //   logger.info(
-        //     `Poliza añadida correctamente, address: ${hotelInsuranceAddress}`
-        //   )
-        //   resolve()
-        // }).catch(reason => {
-        //   logger.error(reason)
-        //   reject(reason)
-        // })
-
-        // for (let i = 0; i < datos[1].length; i++) {
-        //   await exports.addPcrRequest(datos[1][i], body.id);
-        // }
-
-
       })
       .catch((error) => {
         logger.error('Error al crear la póliza', error);
