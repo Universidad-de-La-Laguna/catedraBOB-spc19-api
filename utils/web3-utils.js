@@ -8,7 +8,7 @@ const { logger } = require('./logger')
 const chainId = 1337
 const web3 = new EEAClient(new Web3(config.besu.thisnode.url), chainId)
 
-const INSURER_TAKER_PRIVGROUP = 'DyAOiF/ynpc+JXa2YAGB0bCitSlOMNm+ShmB/7M6C4w='
+
 
 /**
  * Obtiene el abi (datos de una función en solidity) de la función elegida
@@ -82,7 +82,8 @@ function sendPMT(sender, enclaveKey, nonce) {
         from: sender,
         to: "0x000000000000000000000000000000000000007e", // privacy precompile address
         data: enclaveKey,
-        gasLimit: "0x5a88"
+        // gasLimit: "0x5a88"
+        gasLimit: "0xa00000"
         }
 
         web3.eth.accounts.signTransaction(rawTx, `0x${config.besu.thisnode.privateKey}`)
@@ -107,20 +108,23 @@ function sendPMT(sender, enclaveKey, nonce) {
  * Send a raw transaction with parallel compatibility
  * @param {*} functionParams
  * @param {*} index offset to sum nonce to differ transactions
+ * @param {String} privacyGroupId
  * @returns transaction receipt
  */
-async function sendParallelTransaction(functionParams, index) {
+async function sendParallelTransaction(functionParams, index, privacyGroupId) {
     // Obtenemos el nonce privado
-    const privateNonce = await getPrivateNonce(INSURER_TAKER_PRIVGROUP)
+    const privateNonce = await getPrivateNonce(privacyGroupId)
+    logger.info(`privateNonce: ${privateNonce} index: ${index}`)
 
     // Obtenemos el nonce publico
     const publicNonce = await getPublicNonce()
+    logger.info(`publicNonce: ${publicNonce} index: ${index}`)
 
     // Incluir nonce en transacción de distribución.
     // nonce privado diferente para cada tx del pool invocada.
     functionParams = {
       ...functionParams,
-      nonce: privateNonce + index 
+      nonce: privateNonce + index
     }
 
     // distribute payload to participants
@@ -155,8 +159,64 @@ async function sendParallelTransaction(functionParams, index) {
     return privTxRcpt
 }
 
+/**
+ * Crea un contrato con el bytecode elegido con las opciones elegidas
+ * @param {String} bytecode
+ * @param {String} privFor
+ * @param {String} privacyGroupId
+ * @param {Number} index In parallel transactions, offset to sum nonce to differ transactions 
+ * @returns {String} Hash de la transacción
+ */
+ function createContract(bytecode, privateFor, privacyGroupId, index) {
+    return new Promise(async function (resolve, reject) {
+        try {
+            // Creando contrato en nodo Mutua
+            const contractOptions = {
+                data: '0x' + bytecode,
+                privateFrom: config.orion.taker.publicKey,
+                privateFor,
+                privateKey: config.besu.thisnode.privateKey,
+            }
+            logger.info('Creating contract...')
+            let privTxRcpt
+            let c
+
+            // Send transaction in concurrent mode or not
+            if (index) {
+                logger.info('Launching concurrent transaction...')
+                privTxRcpt = await sendParallelTransaction(contractOptions, index, privacyGroupId)
+            }
+            else {
+                logger.info('Launching single transaction')
+                c = await web3.eea.sendRawTransaction(contractOptions)
+                privTxRcpt = await web3.priv.getTransactionReceipt(
+                    c,
+                    config.orion.taker.publicKey
+                )
+            }
+
+            // Check if error
+            if (typeof privTxRcpt === 'undefined') {
+                logger.error(error)
+                reject(error)
+            } else if (privTxRcpt.revertReason) {
+                let error = Web3Utils.toAscii('0x' + privTxRcpt.revertReason.slice(138))
+                logger.error(error)
+                reject({ code: '400', message: error })
+            } else {
+                resolve(c)
+            }
+        }
+        catch (error) {
+            logger.error(error)
+            reject(error)
+        }
+    })
+}
+
 module.exports = {
     getFunctionAbi,
     getContractAddress,
-    sendParallelTransaction
+    sendParallelTransaction,
+    createContract
 }

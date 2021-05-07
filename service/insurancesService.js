@@ -175,72 +175,75 @@ async function createInsurance(insuranceData) {
  * @returns {String} Address of the contract
  */
 function createPCR(body, insuranceId, requestDate, index) {
-  return new Promise(function (resolve, reject) {
-    if (config.businessParams.nodeRole !== 'taker') {
-      reject({
-        code: '400',
-        message: 'Sólo los takers pueden crear solicitudes de PCR',
-      });
-    }
-    getInsuranceAddressByInsuranceId(insuranceId, index)
-      .then((insuranceAddress) => {
-        logger.info(body.id)
-        let constrAbi = PCRAbi[0];
-        let constructorArguments = web3.eth.abi
-          .encodeParameters(constrAbi.inputs, [
-            Web3Utils.fromAscii(body.id),
-            Web3Utils.fromAscii(insuranceId),
-            Web3Utils.fromAscii(body.customerId),
-            requestDate,
-            insuranceAddress,
-          ])
-          .slice(2);
-        createContract(
-          PCRBytecode + constructorArguments,
-          [labPublicKey],
-          TAKER_LAB_PRIVGROUP,
-          // index  // FIX: si se pasa el fixme como cuarto parametro, solo se crea un contrato
-        ).then((pcrContract) => {
-          getContractAddress(pcrContract, config.orion.taker.publicKey).then(
-            (pcrAddress) => {
-              if (
-                body.customerFullName !== undefined &&
-                body.customerEmail !== undefined &&
-                body.customerTelephone !== undefined
-              ) {
-                // Mandar mensaje con los datos del cliente
-                mail.sendEmailToLaboratory(
-                  toUUID(insuranceId),
-                  toUUID(body.id),
-                  pcrAddress,
-                  {
-                    customerId: toUUID(body.customerId),
-                    customerFullName: body.customerFullName,
-                    customerEmail: body.customerEmail,
-                    customerTelephone: body.customerTelephone,
-                  }
-                );
-              } else {
-                // Mandar mensaje sin los datos del cliente
-                mail.sendEmailToLaboratory(
-                  toUUID(insuranceId),
-                  toUUID(body.id),
-                  pcrAddress,
-                  {
-                    customerId: toUUID(body.customerId),
-                  }
-                );
-              }
+  return new Promise(async function (resolve, reject) {
+    try {
+      if (config.businessParams.nodeRole !== 'taker') {
+        reject({
+          code: '400',
+          message: 'Sólo los takers pueden crear solicitudes de PCR',
+        })
+      }
+      
+      const insuranceAddress = await getInsuranceAddressByInsuranceId(insuranceId, index)
 
-              resolve(pcrAddress);
-            }
-          );
-        });
-      })
-      .catch((error) => {
-        reject(error);
-      });
-  });
+      logger.info(body.id)
+
+      let constrAbi = PCRAbi[0];
+      let constructorArguments = web3.eth.abi
+        .encodeParameters(constrAbi.inputs, [
+          Web3Utils.fromAscii(body.id),
+          Web3Utils.fromAscii(insuranceId),
+          Web3Utils.fromAscii(body.customerId),
+          requestDate,
+          insuranceAddress,
+        ])
+        .slice(2);
+
+      const pcrContract = await createContract(
+        PCRBytecode + constructorArguments,
+        [labPublicKey],
+        TAKER_LAB_PRIVGROUP,
+        // index  // FIXME: si se pasa el fixme como cuarto parametro, solo se crea un contrato
+      )
+
+      const pcrAddress = await getContractAddress(pcrContract, config.orion.taker.publicKey)
+
+      if (
+        body.customerFullName !== undefined &&
+        body.customerEmail !== undefined &&
+        body.customerTelephone !== undefined
+      ) {
+        // Mandar mensaje con los datos del cliente
+        mail.sendEmailToLaboratory(
+          toUUID(insuranceId),
+          toUUID(body.id),
+          pcrAddress,
+          {
+            customerId: toUUID(body.customerId),
+            customerFullName: body.customerFullName,
+            customerEmail: body.customerEmail,
+            customerTelephone: body.customerTelephone,
+          }
+        );
+      } else {
+        // Mandar mensaje sin los datos del cliente
+        mail.sendEmailToLaboratory(
+          toUUID(insuranceId),
+          toUUID(body.id),
+          pcrAddress,
+          {
+            customerId: toUUID(body.customerId),
+          }
+        )
+      }
+
+      resolve(pcrAddress)
+    }
+    catch (error) {
+      logger.error(error)
+      reject(error)
+    }
+  })
 }
 
 /**
@@ -264,8 +267,7 @@ function getInsuranceAddressByInsuranceId(insuranceId, index) {
       data: funcAbi.signature + funcArguments,
       privateFrom: config.orion.taker.publicKey,
       privateFor: [mutuaPublicKey],
-      privateKey: config.besu.thisnode.privateKey,
-      // nonce: privateNonce + index // nonce privado diferente para cada tx del pool invocada
+      privateKey: config.besu.thisnode.privateKey
     }
 
     // Enviamos la transacción
