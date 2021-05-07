@@ -10,13 +10,21 @@ const { logger } = require('../utils/logger');
 const mail = require('../utils/mail-sender');
 const { toUUID } = require('to-uuid');
 const PromisePool = require("async-promise-pool");
-const { getFunctionAbi, getContractAddress, sendParallelTransaction } = require('../utils/web3-utils')
+const {
+  getFunctionAbi,
+  getContractAddress,
+  sendParallelTransaction,
+  createContract
+} = require('../utils/web3-utils')
 
 const chainId = 1337;
 const web3 = new EEAClient(new Web3(config.besu.thisnode.url), chainId);
 
 const labPublicKey = config.orion.laboratory.publicKey;
 const mutuaPublicKey = config.orion.insurer.publicKey;
+
+const INSURER_TAKER_PRIVGROUP = 'DyAOiF/ynpc+JXa2YAGB0bCitSlOMNm+ShmB/7M6C4w='
+const TAKER_LAB_PRIVGROUP = '7LGGJ9igv9hZvgyLtTF7hTtisABHmFsNZLhsTzBPS2M='
 
 const insuranceContractPath = path.resolve(
   __dirname,
@@ -42,40 +50,6 @@ const Spc19Abi = Spc19ContractJSON.abi;
 const insuranceBytecode = insuranceContractJSON.evm.bytecode.object;
 const PCRBytecode = PCRContractJSON.evm.bytecode.object;
 const Spc19Bytecode = Spc19ContractJSON.evm.bytecode.object;
-
-/**
- * Crea un contrato con el bytecode elegido con las opciones elegidas
- * @param {String} bytecode
- * @param {String} privFrom
- * @param {String} privKey
- * @param {String} privFor
- * @param {Web3} web3
- * @returns {String} Hash de la transacción
- */
-function createContract(bytecode, privFrom, privKey, privFor) {
-  return new Promise(async function (resolve, reject) {
-    // Creando contrato en nodo Mutua
-    const contractOptions = {
-      data: '0x' + bytecode,
-      privateFrom: privFrom, // orion.member1.publicKey,
-      privateFor: privFor, // [orion.member3.publicKey],
-      privateKey: privKey, // besu.member1.privateKey
-    };
-    logger.info('Creating contract...');
-    const c = await web3.eea.sendRawTransaction(contractOptions);
-    let hash = await web3.priv.getTransactionReceipt(
-      c,
-      config.orion.taker.publicKey
-    );
-    if (hash.revertReason) {
-      let error = Web3Utils.toAscii('0x' + hash.revertReason.slice(138));
-      logger.error(error);
-      reject({ code: '400', message: error });
-    }
-    resolve(c);
-  });
-}
-
 
 /**
  *
@@ -156,9 +130,8 @@ async function createInsurance(insuranceData) {
         .slice(2);
       let insuranceContract = await createContract(
         insuranceBytecode + constructorArguments,
-        config.orion.taker.publicKey, // PrivateFrom
-        config.besu.thisnode.privateKey, // PrivateKey
-        [mutuaPublicKey] // PrivateFor
+        [mutuaPublicKey], // PrivateFor
+        INSURER_TAKER_PRIVGROUP
       );
       let insuranceAddress = await getContractAddress(
         insuranceContract,
@@ -224,9 +197,9 @@ function createPCR(body, insuranceId, requestDate, index) {
           .slice(2);
         createContract(
           PCRBytecode + constructorArguments,
-          config.orion.taker.publicKey,
-          config.besu.thisnode.privateKey,
-          [labPublicKey]
+          [labPublicKey],
+          TAKER_LAB_PRIVGROUP,
+          // index  // FIX: si se pasa el fixme como cuarto parametro, solo se crea un contrato
         ).then((pcrContract) => {
           getContractAddress(pcrContract, config.orion.taker.publicKey).then(
             (pcrAddress) => {
@@ -296,7 +269,7 @@ function getInsuranceAddressByInsuranceId(insuranceId, index) {
     }
 
     // Enviamos la transacción
-    const privTxRcpt = await sendParallelTransaction(functionParams, index)
+    const privTxRcpt = await sendParallelTransaction(functionParams, index, INSURER_TAKER_PRIVGROUP)
 
     // Comprobamos si hay error en el recibo de la transacción
     if (privTxRcpt.revertReason) {
@@ -700,33 +673,41 @@ exports.getAllInsurancePolicy = function (body) {
 };
 
 function addPcrRequest2(body, insuranceId, index) {
-  return new Promise((resolve, reject) => {
-    const requestDate = parseInt(new Date().getTime() / 1000)
-    // Create PCR
-    createPCR(body, insuranceId, requestDate, index)
-    .then(pcrAddress => {
-      // getInsuranceAddressByInsuranceId(insuranceId, index)
-      // .then( insuranceAddress => {
-      //   addPCR(body, insuranceAddress, requestDate, pcrAddress)
-      //   .then(res => {
-      //     logger.info('PCR Añadida con éxito, address: ', pcrAddress)
-      //     resolve()
-      //   })
-      //   .catch(error => {
-      //     logger.error('Error al añadir PCR a póliza: ', error)
-      //     reject(error)
-      //   })
-      // })
-      // .catch(error => {
-      //   logger.error('Error al recuperar la dirección del contrato a partir del insuranceId: ', error)
-      //   reject(error)
-      // })
+  return new Promise(async (resolve, reject) => {
+    try {
+      const requestDate = parseInt(new Date().getTime() / 1000)
+      // Create PCR
+      const pcrAddress = await createPCR(body, insuranceId, requestDate, index)
+      logger.info(`pcrAddress: ${pcrAddress}`)
+
+      const insuranceAddress = await getInsuranceAddressByInsuranceId(insuranceId, index)
+      logger.info(`insuranceAddress: ${insuranceAddress}`)
+
+      // await addPCR(body, insuranceAddress, requestDate, pcrAddress)
+      logger.info('PCR Añadida con éxito, address: ', pcrAddress)
+
       resolve()
-    })
-    .catch((error) => {
+      // .then( insuranceAddress => {
+        //   addPCR(body, insuranceAddress, requestDate, pcrAddress)
+        //   .then(res => {
+        //     logger.info('PCR Añadida con éxito, address: ', pcrAddress)
+        //     resolve()
+        //   })
+        //   .catch(error => {
+        //     logger.error('Error al añadir PCR a póliza: ', error)
+        //     reject(error)
+        //   })
+        // })
+        // .catch(error => {
+        //   logger.error('Error al recuperar la dirección del contrato a partir del insuranceId: ', error)
+        //   reject(error)
+        // })
+      resolve()
+    }
+    catch (error) {
       logger.error('Error al crear contrato PCR: ', error)
       reject(error)
-    })
+    }
   })
 }
 
