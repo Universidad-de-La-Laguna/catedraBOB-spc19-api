@@ -616,6 +616,10 @@ exports.addInsurancePolicy = function (body) {
         // Paralelizamos la creación de las PCR
         const pool = new PromisePool({ concurrency: 6 })
 
+        // FIXME: La obtención de los nonce (público y privado) debería hacerse en este punto
+        // pues si se hace cada vez que se envía una transacción, se está dando el caso de que
+        // se envían transacciones en sigueintes peticiones con el mismo nonce que el actual
+
         for (let i = 0; i < datos[1].length; i++) {
           pool.add(() => {
             return addPcrRequest2(datos[1][i], body.id, i)
