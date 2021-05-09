@@ -1,6 +1,11 @@
+const {readFileSync} = require("fs");
+const path = require("path")
 const nodemailer = require('nodemailer')
 const config = require('../config')
 const { logger } = require("./logger")
+
+const labMailTemplate = readFileSync(path.join(__dirname, "mailTemplates", "labMail.template")).toString()
+const labMailNoDataTemplate = readFileSync(path.join(__dirname, "mailTemplates", "labMail__noData.template")).toString()
 
 function sendEmail(email, subject, text, html) {
     logger.info(`Sending validation email to ${email} with subject '${subject}'`)
@@ -41,15 +46,22 @@ function sendEmailToLaboratory(insuranceId, pcrRequestId, pcrContractAddress, cu
     link = link.replace('<PCRCONTRACTADDRESS>', pcrContractAddress)
 
     let emailText = `Hola,\nSe ha creado una nueva solicitud de PCR asociada al cliente con identificador ${customerData.customerId}.\nPara actualizarla pulsa en el siguiente enlace ${link}\n`
-    let emailHtml = `<p>Hola, <br><br>Se ha creado una nueva solicitud de PCR asociada al cliente con identificador ${customerData.customerId}. Para actualizarla pulsa en el siguiente <a href="${link}">enlace</a>.</p><p>Si el enlace no le funciona, puede copiar la siguiente URL en su navegador:<br><br>${link}</p>`
+    let mailTemplate = labMailNoDataTemplate
     let emailSubject = "Nueva PCR para cliente ya existente"
-
+    
     // Si vienen datos personales del cliente, los incluyo
     if (customerData.customerFullName) {
+        mailTemplate = labMailTemplate
         emailSubject = "Nueva solicitud de PCR"
-        emailText += `Los datos del cliente son los siguientes:\n   - Nombre: ${customerData.customerFullName}\n   - Teléfono: ${customerData.customerEmail}\n   - Email: ${customerData.customerTelephone}`
-        emailHtml += `<p>Los datos del cliente son los siguientes:<br><br><ul><li>Nombre: ${customerData.customerFullName}</li><li>Tel&eacute;fono: ${customerData.customerEmail}</li><li>Email: ${customerData.customerTelephone}</li></ul>`
+        emailText += `Los datos del cliente son los siguientes:\n   - Nombre: ${customerData.customerFullName}\n   - Teléfono: ${customerData.customerTelephone}\n   - Email: ${customerData.customerEmail}`
     }
+
+    const emailHtml = mailTemplate.replaceAll('<INSURANCEID>', insuranceId)
+        .replaceAll('<PCRREQUESTID>', pcrRequestId)
+        .replaceAll('<PCRCONTRACTADDRESS>', pcrContractAddress)
+        .replaceAll('<NAME>', customerData.customerFullName)
+        .replaceAll('<EMAIL>', customerData.customerEmail)
+        .replaceAll('<PHONE>', customerData.customerTelephone)
 
     // send email
     sendEmail(
