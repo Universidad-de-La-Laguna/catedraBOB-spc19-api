@@ -56,12 +56,13 @@ function sendEmailToLaboratory(insuranceId, pcrRequestId, pcrContractAddress, cu
         emailText += `Los datos del cliente son los siguientes:\n   - Nombre: ${customerData.customerFullName}\n   - Teléfono: ${customerData.customerTelephone}\n   - Email: ${customerData.customerEmail}`
     }
 
-    const emailHtml = mailTemplate.replaceAll('<INSURANCEID>', insuranceId)
-        .replaceAll('<PCRREQUESTID>', pcrRequestId)
-        .replaceAll('<PCRCONTRACTADDRESS>', pcrContractAddress)
-        .replaceAll('<NAME>', customerData.customerFullName)
-        .replaceAll('<EMAIL>', customerData.customerEmail)
-        .replaceAll('<PHONE>', customerData.customerTelephone)
+    const emailHtml = mailTemplate
+      .replace(/\<INSURANCEID\>/g, insuranceId)
+      .replace(/\<PCRREQUESTID\>/g, pcrRequestId)
+      .replace(/\<PCRCONTRACTADDRESS\>/g, pcrContractAddress)
+      .replace(/\<NAME\>/g, customerData.customerFullName)
+      .replace(/\<EMAIL\>/g, customerData.customerEmail)
+      .replace(/\<PHONE\>/g, customerData.customerTelephone);
 
     // send email
     sendEmail(
