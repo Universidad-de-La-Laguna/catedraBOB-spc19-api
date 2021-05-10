@@ -1,5 +1,11 @@
 const Web3Utils = require('web3-utils');
 
+/**
+ * Función que obtiene los datos de las pólizas a partir del array de bytes del Smart Contract
+ * @param {String} data guarda el array de bytes con los datos de las pólizas
+ * @param {Object} newOffset guarda el offset actual en el caso de varias pólizas
+ * @returns
+ */
 const deseriality = (data, newOffset) => {
   const insurance = {taker: {}};
   let offset;
@@ -118,11 +124,16 @@ const deseriality = (data, newOffset) => {
     insurance['pcrRequests'].push(pcrInfo);
   }
   if (newOffset) {
-    newOffset.offset += offset;
+    newOffset.offset += offset - newOffset.offset;
   }
   return insurance;
 };
 
+/**
+ * Función que obtiene los datos de las pólizas a partir del array de bytes del Smart Contract
+ * @param {String} data guarda el array de bytes con los datos de las pólizas
+ * @returns
+ */
 const multipleDeseriality = (data) => {
   if (!data) return ([]);
   const insurances = [];
