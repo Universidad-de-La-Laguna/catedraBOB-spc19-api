@@ -3,8 +3,6 @@
 ## Overview
 This service implements the REST API for the SPC19 project. Version 3.0 [OpenAPI-Spec] (https://github.com/OAI/OpenAPI-Specification) is used, and it uses the `oas-tools` library for the interpretation of the specification document (` api/openapi.yaml` ), as well as automatic validation and `JWT` based authentication.
 
-> Este servicio implementa la API REST para el proyecto SPC19. Se  usa la versión 3.0 [OpenAPI-Spec](https://github.com/OAI/OpenAPI-Specification), y utiliza la librería `oas-tools` para la interpretación del documento de especificación (`api/openapi.yaml`), así como la validación automática y la autenticación basada en `JWT`.
-
 ### Run the API service
 
 To run the server, run:
@@ -23,8 +21,6 @@ open http://localhost:8080/docs
 
 For the tests, the services layer has been mocked to use an in-memory MongoDB database (`mongodb-memory-server`) instead of a blockchain, relating a document (json object) of the database with a smart contract deployed on the blockchain.
 
->Para los tests, se ha mockeado la capa de servicios para usar una base de datos MongoDB en memoria (`mongodb-memory-server`) en lugar de una blockchain, relacionando un documento (objeto json) de la base de datos con un smart contract desplegado en la blockchain.
-
 Execute:
 
 ```
@@ -35,11 +31,7 @@ npm run test
 
 The access control rules are specified in the API specification document itself (`api/openapi.yaml`), in the` x-acl-config` section. For more information, see the documentation for the [accesscontrol](https://www.npmjs.com/package/accesscontrol) and [oas-tools](https://www.npmjs.com/package/oas-tools#3-oasauth) modules.
 
->Las reglas de control de acceso se especifican en el propio documento de especificación de la API (`api/openapi.yaml`), en la sección `x-acl-config`. Para más información, ver la documentación de los módulos [accesscontrol](https://www.npmjs.com/package/accesscontrol) y [oas-tools](https://www.npmjs.com/package/oas-tools#3-oasauth).
-
 The role must be specified in the `role` field of the payload of the JWT token used. For example, the following token includes the `admin` role and this role can perform the same as the other roles in the system:
-
-> El rol se debe especificar en el campo `role` del payload del token JWT utilizado. Por ejemplo, el siguiente token incluye el rol `admin` y este rol puede realizar lo mismo que el resto de roles del sistema:
 
 ```jwt
 eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJyb2xlIjoiYWRtaW4iLCJpc3MiOiJVTEwifQ.OiehqHgx47KQqybnFhi3lFqooeFU4b_hfub_f5XcH6A
@@ -81,7 +73,7 @@ docker run -d \
   catedrabob-spc19-api
 ```
 
-> Nota: esto desplegará un nuevo contrato general SPC19. Si se desea utilizar uno existente, añadir la variable de entorno SPC19CONTRACTADDRESS con la dirección del contrato. Ejemplo: `-e SPC19CONTRACTADDRESS=0x9e7fb7a7b222a670adf7457cde2beadacaac3a7d`
+> Note: this will display a new general contract SPC19. If you want to use an existing one, add the environment variable SPC19CONTRACTADDRESS with the contract address. Example: `-e SPC19CONTRACTADDRESS=0x9e7fb7a7b222a670adf7457cde2beadacaac3a7d`
 
 For insurer:
 
